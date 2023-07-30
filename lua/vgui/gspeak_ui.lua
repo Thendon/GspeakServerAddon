@@ -7,7 +7,11 @@ hook.Add( "HUDPaint", "gspeak_hud", function()
 	gspeak:DrawHUD()
 end)
 
-hook.Add( "Think", "gspeak_talkmenu", function()
+hook.Add( "Think", "gspeak_ui_control", function()
+	gspeak:UpdateLoading()
+
+	if !gspeak.cl.TS.inChannel then return end
+
 	if input.IsKeyDown( gspeak.cl.settings.key ) and !talkMenuState then
 		gui.EnableScreenClicker(true)
 		talkMenuState = true
@@ -18,6 +22,29 @@ hook.Add( "Think", "gspeak_talkmenu", function()
 		if gspeak.cl.tmm.selected != gspeak.cl.settings.talkmode then	gspeak:change_talkmode( gspeak.cl.tmm.selected ) end
 	end
 end)
+
+function gspeak:UpdateLoading()
+	local loadanim = gspeak.cl.loadanim
+	loadanim.state[loadanim.active] = math.Approach( loadanim.state[loadanim.active], loadanim.dir, FrameTime() * 10 );
+	if loadanim.state[loadanim.active] == loadanim.dir then
+		if loadanim.dir == 1 then
+			loadanim.dir = 0
+		elseif loadanim.dir == 0 then
+			loadanim.dir = 1
+			loadanim.active = loadanim.active + 1
+			if loadanim.active > 4 then loadanim.active = 1 end
+		end
+	end
+end
+
+function gspeak:VersionWord( plugin )
+	if plugin.version >= plugin.max then
+		return "downgrade to"
+	elseif plugin.version < plugin.req then
+		return "update to"
+	end
+	return "install"
+end
 
 function gspeak:DrawHUD()
 	if LocalPlayer().talking then

@@ -248,3 +248,14 @@ hook.Add("Think", "gspeak_volume_control", function()
 			handleHearablePlayer(ent, v.ent_id)
 	end
 end)
+
+net.Receive("ts_ply_talking", function( len )
+	ply = net.ReadEntity()
+	ply.talking = net.ReadBool()
+end)
+
+net.Receive("ts_ply_talkmode", function ( len )
+	ply = net.ReadEntity()
+	ply.talkmode = net.ReadInt( 32 )
+	--ply.range = net.ReadInt( 32 )
+end)

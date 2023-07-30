@@ -130,10 +130,50 @@ function gspeak:SetDefaultVars()
 	end
 end
 
+net.Receive("gspeak_server_settings", function()
+	local setting = net.ReadTable()
+	gspeak.settings[setting.name] = setting.value
+	gspeak:RefreshIcons()
+	if gspeak.cl.TS.connected then gspeak.io:SendSettings() end
+end)
+
+net.Receive("gspeak_init", function( len )
+	for k, v in pairs(ents.GetAll()) do
+		if !IsValid(v) then continue end
+		if v:IsPlayer() then
+			gspeak:NoDoubleEntry(v, gspeak.cl.players)
+		elseif v:IsRadio() then
+			gspeak:NoDoubleEntry(v, gspeak.cl.radios)
+		end
+	end
+
+	if GAMEMODE_NAME == "terrortown" then gspeak.terrortown = true end
+
+	local ply_var_table = net.ReadTable()
+	--local radio_var_table = net.ReadTable()
+	gspeak.settings = net.ReadTable()
+
+	for k, v in pairs(ply_var_table) do
+		v[1].talkmode = v[2]
+		v[1].ts_id = v[3]
+		v[1].talking = v[4]
+		--v[1].range = v[5] --TODO: people told me this might be broken
+	end
+
+	--cast icon picture to material and save it
+	gspeak:RefreshIcons()
+	gspeak:LoadSettings( gspeak.cl.settings )
+	gspeak:SetDefaultVars()
+	if gspeak.cl.TS.connected then gspeak.io:SendSettings() end
+
+	gspeak.io:Load()
+end)
+
 include("gspeak/io/cl_iohandler.lua")
 include("gspeak/cl_player.lua")
 include("gspeak/cl_net.lua")
 include("gspeak/cl_input.lua")
+include("gspeak/cl_radio.lua")
 include("gspeak/cl_animations.lua")
 include("gspeak/cl_connection.lua")
 include("gspeak/cl_volume_control.lua")

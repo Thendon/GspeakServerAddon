@@ -113,11 +113,11 @@ function gspeak:broadcast_talkmode( ply )
 	net.Broadcast()
 end
 
-function gspeak:updateName( ply, name )
-	net.Start("gspeak_name_change")
-		net.WriteString( name )
-	net.Send(ply)
-end
+-- function gspeak:updateName( ply, name )
+-- 	net.Start("gspeak_name_change")
+-- 		net.WriteString( name )
+-- 	net.Send(ply)
+-- end
 
 function gspeak:add_file(path, file)
 	local new = true

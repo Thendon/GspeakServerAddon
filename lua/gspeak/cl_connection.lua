@@ -1,7 +1,16 @@
 AddCSLuaFile()
 
+local informedAboutFail = false
+
 hook.Add("Think", "gspeak_connect", function()
-	if gspeak.cl.failed then return end
+	if gspeak.cl.failed then 
+        if !informedAboutFail then
+            informedAboutFail = true
+            net.Start("gspeak_failed")
+            net.SendToServer()
+        end
+        return 
+    end
 
 	local now = CurTime()
 	gspeak.chill = gspeak.chill or now + 10
@@ -68,3 +77,19 @@ end
 -- 		--net.WriteInt( ts_id, 32 )
 -- 	net.SendToServer()
 -- end
+
+net.Receive("ts_ply_id", function( len )
+	local ply = net.ReadEntity()
+	if (ply.ts_id) then gspeak.io:RemovePlayer(ply:EntIndex(), false, -1) end
+	ply.ts_id = net.ReadInt( 32 )
+end)
+
+net.Receive("gspeak_ply_disc", function ( len )
+	index = net.ReadInt(32)
+	if gspeak.cl.TS.connected then gspeak.io:RemovePlayer(index, false, -1) end
+end)
+
+net.Receive("gspeak_failed_broadcast", function(len)
+	local ply = net.ReadEntity()
+	ply.failed = true
+end)

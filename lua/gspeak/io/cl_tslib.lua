@@ -74,7 +74,7 @@ function handler:CheckConnection()
 			--compareName( string ) compares the users teamspeak name with the string
 			--with Teamspeaks name buffer-limits in mind
 			if !tslib.compareName( name ) then
-				gspeak:updateName( name )
+				self:UpdateName( name )
 			end
 		end
 

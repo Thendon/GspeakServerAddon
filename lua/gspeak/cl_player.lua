@@ -35,3 +35,8 @@ function gspeak:UpdatePlayers()
 		gspeak:NoDoubleEntry( v, gspeak.cl.players)
 	end
 end
+
+-- net.Receive("gspeak_name_change", function( len )
+-- 	local name = net.ReadString()
+-- 	if gspeak.cl.TS.connected then gspeak.io:SendName(name) end
+-- end)
