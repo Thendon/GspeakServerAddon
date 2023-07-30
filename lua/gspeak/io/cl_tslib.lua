@@ -8,7 +8,7 @@ function handler:LoadTslib()
             MsgC( gspeak.cl.color.red, "TSlib included - ", gspeak.cl.color.white, "Version ", tostring(gspeak.cl.tslib.version), "\n")
             if gspeak.cl.tslib.version >= gspeak.cl.tslib.req and gspeak.cl.tslib.version < gspeak.cl.tslib.max then
                 gspeak.cl.running = true
-                gspeak:set_tsid(-1) --loading mode
+                gspeak:set_tsid(0) --loading mode
                 return
             else
                 gspeak.cl.tslib.wrongVersion = true
@@ -35,7 +35,6 @@ end
 --Tries to move the User into the channel until succeeds
 local function forceMoveLoop()
 	tslib.forceMove( function( success )
-		gspeak:ConsolePrint("force move callback " .. tostring(success))
 		if !success then
 			forceMoveLoop()
 		end
@@ -54,7 +53,7 @@ function handler:UpdateName( name )
 		end
 		updateNameInProgress = false
 	end )
-end
+end 
 
 function handler:CheckConnection()
 	if gspeak.cl.TS.connected then
@@ -62,7 +61,7 @@ function handler:CheckConnection()
 		--update every 100th tick
 		if gspeak.cl.updateTick > 100 then
 			gspeak.cl.updateTick = 0
-			tslib.update() --causing lua underflow error in beta version
+			tslib.update()
 		end
 
 		if gspeak.settings.def_initialForceMove and !gspeak.cl.movedInitially then
@@ -81,16 +80,16 @@ function handler:CheckConnection()
 
 		gspeak.cl.TS.version = tslib.getGspeakVersion()
 
-		 --closed Teamspeak3
-		if gspeak.cl.TS.version == -1 then
+		 --lost connection to Teamspeak3
+		if gspeak.cl.TS.version == 0 then
 			gspeak.cl.TS.connected = false
 			gspeak.cl.movedInitially = false
+			gspeak:set_tsid( 0 )
 		end
-		return
 	elseif tslib.connectTS() == true then
 		if !IsValid(LocalPlayer()) then return end
 		gspeak.cl.TS.version = tslib.getGspeakVersion()
-		if gspeak.cl.TS.version == -1 or gspeak.cl.TS.version == 0 then return end
+		if gspeak.cl.TS.version == 0 then return end
 		if gspeak.cl.TS.version < gspeak.cl.TS.req or gspeak.cl.TS.version > gspeak.cl.TS.max then gspeak.cl.TS.failed = true return end
 
 		net.Start( "ts_talkmode" )
@@ -99,7 +98,6 @@ function handler:CheckConnection()
 
 		tslib.delAll()
 		tslib.sendClientPos( 0, 0, 0, 0, 0, 0)
-		--gspeak:send_settings()
 		gspeak.io:SendSettings()
 
 		gspeak.cl.TS.failed = false
@@ -113,6 +111,7 @@ function handler:SendName(name)
     end )
 end
 
+--playerIndex is entity id, could be changed to tsId without issues (remove player when id changes of course)
 function handler:RemovePlayer(playerIndex, isEntity, entityIndex)
     tslib.delPos(playerIndex, isEntity, entityIndex)
 end
@@ -127,6 +126,22 @@ end
 
 function handler:IsTalking()
     return tslib.talkCheck()
+end
+
+function handler:IsInChannel()
+	return tslib.getInChannel()
+end
+
+function handler:GetTsId()
+	return tslib.getTsID()
+end
+
+function handler:GetHearables()
+	return tslib.getAllID()
+end
+
+function handler:Tick()
+	tslib.tick()
 end
 
 //************************************************************//

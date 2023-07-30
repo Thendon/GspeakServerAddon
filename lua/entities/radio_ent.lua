@@ -2,6 +2,7 @@ AddCSLuaFile()
 
 ENT.Base = "base_entity"
 ENT.Type = "anim"
+ENT.Spawnable = false
 ENT.Author = "Thendon.exe"
 ENT.Category = "Gspeak"
 ENT.AutomaticFrameAdvance = true
@@ -90,6 +91,7 @@ end
 function ENT:Think()
 	local own_online = self:GetOnline()
 	local own_sending = self:GetSending()
+	--parent is the swep of the entity
 	local parent = self:GetParent()
 
 	self.range = self:GetRange()
@@ -168,7 +170,7 @@ function ENT:Think()
 		end
 
 		local own_freq = self:GetFreq()
-		if !self.last_freq or self.last_freq != own_freq or self.last_online != own_online  or self.last_sending != own_sending then
+		if !self.last_freq or self.last_freq != own_freq or self.last_online != own_online or self.last_sending != own_sending then
 			self:Rescan(own_freq, own_online, own_sending)
 		end
 		self.last_sending = own_sending
@@ -177,4 +179,4 @@ function ENT:Think()
 	end
 end
 
-include("gspeak/sh_def_ent.lua")
+include("gspeak/entities/sh_def_ent.lua")

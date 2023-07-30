@@ -185,10 +185,52 @@ function ENT:Think()
 			if !own_speaker.ChatStation then own_speaker.ChatStation = true end
 			own_speaker.ChatGesture = true
 		end
-		local distance, distance_max, radio_pos = gspeak:get_distances(self, 1)
+		local distance, radio_pos = gspeak:get_distances(self)
+		local distance_max = self:GetRange()
 		if distance < distance_max and ( gspeak:player_alive(LocalPlayer()) or gspeak.settings.dead_alive ) then
 			self:AddHearables(radio_pos, gspeak:calcVolume( distance, distance_max ))
 		end
+	end
+end
+
+function ENT:DefaultInitialize()
+	//Own Locked Variables
+	self.last_use = 0
+	self.sending = false
+	self.connected_radios = {}
+	self.settings = { 
+		trigger_at_talk = false, 
+		start_com = gspeak.settings.radio_start, 
+		end_com = gspeak.settings.radio_stop 
+	}
+	
+	self.menu = {
+		page = 1, 
+		pages = 3
+	}
+	self.Radio = true
+
+	self:DrawShadow( true )
+
+	self:SetModel( "models/gspeak/militaryradio.mdl" )
+	self:UseClientSideAnimation(true)
+	if SERVER then
+		self:SetOnline( self.online )
+		self:SetFreq( self.freq )
+		self:SetRange( self.range )
+		self:SetUseType( CONTINUOUS_USE )
+		self:PhysicsInit( SOLID_VPHYSICS )
+		self:SetMoveType( MOVETYPE_VPHYSICS )
+		self:SetSolid( SOLID_VPHYSICS )
+		local phys = self:GetPhysicsObject()
+		if (phys:IsValid()) then
+			phys:Wake()
+			phys:SetMass(1)
+		end
+	end
+
+	if CLIENT then
+		gspeak:NoDoubleEntry( self, gspeak.cl.radios )
 	end
 end
 

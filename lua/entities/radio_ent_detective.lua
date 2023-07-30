@@ -21,30 +21,7 @@ function ENT:Initialize()
 	self.range_min = 100 --Min range (default = 100)
 	self.range_max = 300 --Max range (default = 300)
 
-	//Own Locked Variables
-	self.last_use = 0
-	self.sending = false
-	self.connected_radios = {}
-	self.menu = {page = 1, pages = 3}
-	self.Radio = true
-
-	self:DrawShadow( true )
-
-	self:SetModel( "models/gspeak/militaryradio.mdl" )
-	self:UseClientSideAnimation(true)
-	if SERVER then
-		self:SetOnline( self.online )
-		self:SetFreq( self.freq )
-		self:SetUseType( CONTINUOUS_USE )
-		self:PhysicsInit( SOLID_VPHYSICS )
-		self:SetMoveType( MOVETYPE_VPHYSICS )
-		self:SetSolid( SOLID_VPHYSICS )
-		local phys = self:GetPhysicsObject()
-		if (phys:IsValid()) then
-			phys:Wake()
-			phys:SetMass(1)
-		end
-	end
+	self:DefaultInitialize()
 end
 
-include("gspeak/sh_def_station.lua")
+include("gspeak/entities/sh_def_station.lua")

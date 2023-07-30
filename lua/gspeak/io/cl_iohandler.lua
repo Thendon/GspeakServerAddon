@@ -39,3 +39,19 @@ end
 function gspeak.io:IsTalking()
     return tslibHandler:IsTalking()
 end
+
+function gspeak.io:IsInChannel()
+    return tslibHandler:IsInChannel()
+end
+
+function gspeak.io:GetTsId()
+    return tslibHandler:GetTsId()
+end
+
+function gspeak.io:GetHearables()
+    return tslibHandler:GetHearables()
+end
+
+function gspeak.io:Tick()
+    tslibHandler:Tick()
+end

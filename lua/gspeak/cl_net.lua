@@ -15,7 +15,7 @@ end)
 net.Receive("ts_ply_talkmode", function ( len )
 	ply = net.ReadEntity()
 	ply.talkmode = net.ReadInt( 32 )
-	ply.range = net.ReadInt( 32 )
+	--ply.range = net.ReadInt( 32 )
 end)
 
 net.Receive("gspeak_name_change", function( len )
@@ -32,7 +32,7 @@ net.Receive("gspeak_server_settings", function()
 	local setting = net.ReadTable()
 	gspeak.settings[setting.name] = setting.value
 	gspeak:RefreshIcons()
-	if gspeak.cl.TS.connected then gspeak.io:SendSettings() --[[gspeak:send_settings()]] end
+	if gspeak.cl.TS.connected then gspeak.io:SendSettings() end
 end)
 
 net.Receive("gspeak_failed_broadcast", function(len)
@@ -53,25 +53,21 @@ net.Receive("gspeak_init", function( len )
 	if GAMEMODE_NAME == "terrortown" then gspeak.terrortown = true end
 
 	local ply_var_table = net.ReadTable()
-	local radio_var_table = net.ReadTable()
+	--local radio_var_table = net.ReadTable()
 	gspeak.settings = net.ReadTable()
 
 	for k, v in pairs(ply_var_table) do
 		v[1].talkmode = v[2]
 		v[1].ts_id = v[3]
 		v[1].talking = v[4]
-		v[1].range = v[5] --TODO: people told me this might be broken
+		--v[1].range = v[5] --TODO: people told me this might be broken
 	end
-
-	--[[for k, v in pairs(radio_var_table) do
-		//Todo: add radios to initial sync!
-	end]]
 
 	--cast icon picture to material and save it
 	gspeak:RefreshIcons()
 	gspeak:LoadSettings( gspeak.cl.settings )
 	gspeak:SetDefaultVars()
-	if gspeak.cl.TS.connected then gspeak.io:SendSettings() --[[gspeak:send_settings()]] end
+	if gspeak.cl.TS.connected then gspeak.io:SendSettings() end
 
 	gspeak.io:Load()
 end)

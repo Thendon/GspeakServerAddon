@@ -36,10 +36,13 @@ function SWEP:DefaultInitialize()
 		self.ent:SetFreq( self.freq )
 		self.ent:Spawn()
 		self.ent:SetOnline(self.online)
-		self.ent:SetFreq(self.freq)
 		self.ent:SetHearable(self.show_hearable)
 		self.ent:SetRange( self.range )
-		self.ent.settings = { trigger_at_talk = self.trigger_at_talk, start_com = self.start_com, end_com = self.end_com }
+		self.ent.settings = { 
+			trigger_at_talk = self.trigger_at_talk, 
+			start_com = self.start_com, 
+			end_com = self.end_com 
+		}
 
 		self:DeleteOnRemove( self.ent )
 	end

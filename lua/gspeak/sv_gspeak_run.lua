@@ -1,9 +1,10 @@
 AddCSLuaFile( "gspeak/cl_gspeak_run.lua" )
 AddCSLuaFile( "gspeak/cl_functions.lua" )
 AddCSLuaFile( "gspeak/cl_net.lua" )
-AddCSLuaFile( "gspeak/cl_hooks.lua" )
-AddCSLuaFile( "gspeak/sh_def_swep.lua" )
-AddCSLuaFile( "gspeak/sh_def_ent.lua" )
+AddCSLuaFile( "gspeak/cl_volume_control.lua" )
+AddCSLuaFile( "gspeak/entities/sh_def_swep.lua" )
+AddCSLuaFile( "gspeak/entities/sh_def_station.lua" )
+AddCSLuaFile( "gspeak/entities/sh_def_ent.lua" )
 AddCSLuaFile( "vgui/gspeak_config.lua" )
 AddCSLuaFile( "vgui/gspeak_hearable.lua" )
 AddCSLuaFile( "vgui/gspeak_ui.lua" )
@@ -12,6 +13,9 @@ AddCSLuaFile( "gspeak/io/cl_iohandler.lua")
 AddCSLuaFile( "gspeak/io/cl_tslib.lua")
 AddCSLuaFile( "gspeak/io/cl_sqlite.lua")
 AddCSLuaFile( "gspeak/io/cl_filestream.lua")
+
+AddCSLuaFile( "gspeak/ui/cl_wgui.lua")
+
 
 util.AddNetworkString( "ts_talking" )
 util.AddNetworkString( "ts_ply_talking" )
@@ -34,7 +38,7 @@ util.AddNetworkString( "radio_page_req" )
 util.AddNetworkString( "radio_page_set" )
 util.AddNetworkString( "radio_send_settings" )
 util.AddNetworkString( "radio_init" )
-util.AddNetworkString( "request_ts_id" )
+--util.AddNetworkString( "request_ts_id" )
 
 //************************************************************//
 //						FASTDL SETTINGS
@@ -105,7 +109,7 @@ function gspeak:broadcast_talkmode( ply )
 	net.Start("ts_ply_talkmode")
 		net.WriteEntity( ply )
 		net.WriteInt( ply.talkmode, 32 )
-		net.WriteInt( gspeak.settings.distances.modes[ply.talkmode].range, 32 )
+		--net.WriteInt( gspeak:get_talkmode_range(ply.talkmode), 32 )
 	net.Broadcast()
 end
 
@@ -157,14 +161,12 @@ end
 
 net.Receive("radio_online_change",function( len, ply )
 	local radio = net.ReadEntity()
-	local online = net.ReadBool()
+	local online = !net.ReadBool()
+	radio:SetOnline(online)
 	if online then
+		radio:EmitSound("radio_booting")
+	else
 		radio:EmitSound("radio_turnoff")
-		radio:SetOnline(false)
-		return
-	end
-	radio:EmitSound("radio_booting")
-	radio:SetOnline(true)
 end)
 
 net.Receive("radio_freq_change", function( len, ply )
@@ -173,9 +175,9 @@ net.Receive("radio_freq_change", function( len, ply )
 	local freq = net.ReadInt( 32 )
 	if isSwep then
 		radio.ent:SetFreq(freq)
-		return
+	else
+		radio:SetFreq(freq)
 	end
-	radio:SetFreq(freq)
 end)
 
 net.Receive("radio_sending_change", function( len, ply )
@@ -215,17 +217,17 @@ net.Receive("ts_talking", function( len, ply )
 	net.Broadcast()
 end)
 
-net.Receive("request_ts_id", function( len, ply )
-	local other = net.ReadEntity()
-	local ts_id = net.ReadInt( 32 )
+-- net.Receive("request_ts_id", function( len, ply )
+-- 	local other = net.ReadEntity()
+-- 	local ts_id = net.ReadInt( 32 )
 
-	if ts_id == other.ts_id or !other.ts_id then return end
+-- 	if ts_id == other.ts_id or !other.ts_id then return end
 
-	net.Start("ts_ply_id")
-		net.WriteEntity( other )
-		net.WriteInt( other.ts_id, 32 )
-	net.Send( ply )
-end)
+-- 	net.Start("ts_ply_id")
+-- 		net.WriteEntity( other )
+-- 		net.WriteInt( other.ts_id, 32 )
+-- 	net.Send( ply )
+-- end)
 
 net.Receive("ts_id", function( len, ply )
 	local ts_id = net.ReadInt( 32 )
@@ -251,36 +253,42 @@ end)
 
 net.Receive("gspeak_request_init", function( len, ply )
 	local all_ply_table = {}
-	local all_radio_table = {}
+	--local all_radio_table = {}
 	for k, v in pairs(ents.GetAll()) do
 		if v == ply then continue end
+
 		if v:IsPlayer() then
 			local ply_table = {}
 			table.insert(ply_table, 1, v)
 			table.insert(ply_table, 2, v.talkmode)
 			table.insert(ply_table, 3, v.ts_id)
 			table.insert(ply_table, 4, v.talking or false)
-			table.insert(ply_table, 5, gspeak:get_talkmode_range(v.talkmode) --[[gspeak.settings.distances.modes[v.talkmode].range]] or 0 )
 			table.insert(all_ply_table, ply_table)
-		elseif v:IsRadio() then
-			local radio_table = {}
-			table.insert(radio_table, 1, v.online)
-			table.insert(radio_table, 2, v.freq)
-			table.insert(radio_table, 3, v.sending)
-			--table.insert(radio_table, 4, v.menu.page or 0)
-			table.insert(all_radio_table, radio_table)
 		end
+		--radio initialization completely handled by Entity() class
+		-- elseif v:IsRadio() then
+		-- 	local radio_table = {}
+		-- 	table.insert(radio_table, 1, v.online)
+		-- 	table.insert(radio_table, 2, v.freq)
+		-- 	table.insert(radio_table, 3, v.sending)
+		-- 	--table.insert(radio_table, 4, v.menu.page or 0)
+		-- 	table.insert(all_radio_table, radio_table)
+		-- end
 	end
-
+	
 	net.Start( "gspeak_init" )
 		net.WriteTable(all_ply_table)
-		net.WriteTable(all_radio_table)
+		--net.WriteTable(all_radio_table)
 		net.WriteTable(gspeak.settings)
 	net.Send( ply )
 end)
 
 net.Receive("gspeak_setting_change", function(len, ply)
 	local setting = net.ReadTable()
+	if (setting.name == "password") then
+		setting.value = tostring(setting.value)
+	end
+
 	gspeak:ChangeSetting(string.Explode( ".", setting.name ), gspeak.settings, setting.name, setting.value)
 end)
 

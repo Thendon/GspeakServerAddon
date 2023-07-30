@@ -20,7 +20,7 @@ gspeak = { version = 3000 };
 gspeak.settings = {
 	distances = {
 		modes = {
-			{	name = "Whisper",	range = 150, icon = "gspeak/gspeak_whisper.png", icon_ui = "gspeak/gspeak_whisper_ui.png" },
+			{	name = "Whisper", range = 150, icon = "gspeak/gspeak_whisper.png", icon_ui = "gspeak/gspeak_whisper_ui.png" },
 			{	name = "Talk", range = 450, icon = "gspeak/gspeak_talk.png", icon_ui = "gspeak/gspeak_talk_ui.png" },
 			{	name = "Yell", range = 900, icon = "gspeak/gspeak_yell.png", icon_ui = "gspeak/gspeak_yell_ui.png" },
 		},
@@ -80,6 +80,22 @@ function gspeak:ConsolePrint( text, color )
 	else print( "[Gspeak] " .. text) end
 end
 
+function gspeak:ConsoleLog( text, color )
+	gspeak:ConsolePrint(text);
+end
+
+function gspeak:ConsoleError( text, color )
+	gspeak:ConsolePrint(text, color());
+end
+
+function gspeak:ConsoleWarning( text, color )
+	gspeak:ConsolePrint(text);
+end
+
+function gspeak:ConsoleSuccess( text, color )
+	gspeak:ConsolePrint(text);
+end
+
 function gspeak:add_sound(path, channel, volume, level, pitch)
 	local _, _, name = string.find(path, "/.+/(.+)[.]")
 	channel = channel or CHAN_ITEM
@@ -122,15 +138,15 @@ end
 function gspeak:UpdateQuery(value, name)
 	local q = sql.Query( "SELECT * FROM gspeak_settings WHERE name = '"..name.."'" )
 	if q == false then
-		gspeak:ConsolePrint( "Database UPDATE Error: "..sql.LastError(), Color(255,0,0) )
+		gspeak:ConsoleError("Database UPDATE Error: "..sql.LastError());
 		return false
 	elseif q == nil then
-		gspeak:ConsolePrint( "New variable ( "..name.." ) found", Color(0,255,0))
+		gspeak:ConsoleSuccess( "New variable ( "..name.." ) found")
 		gspeak:InsertQuery(value, name)
 	end
 
 	if sql.Query( "UPDATE gspeak_settings SET value = "..gspeak:ValueToDB( value ).." WHERE name = '"..name.."'" ) == false then
-		gspeak:ConsolePrint( "Database UPDATE Error: "..sql.LastError(), Color(255,0,0) )
+		gspeak:ConsoleError( "Database UPDATE Error: "..sql.LastError())
 		return false
 	end
 	return true
@@ -138,7 +154,7 @@ end
 
 function gspeak:InsertQuery(value, name)
 	if sql.Query( "INSERT INTO gspeak_settings ( name, value ) VALUES ( '" ..name.. "', " ..gspeak:ValueToDB( value ).. ")" ) == false then
-		gspeak:ConsolePrint( "Database INSERT Error: "..sql.LastError(), Color(255,0,0) )
+		gspeak:ConsoleError("Database INSERT Error: "..sql.LastError());
 		return false
 	end
 	return true
@@ -146,13 +162,13 @@ end
 
 function gspeak:ChangeSetting(setting, table, name, value, i, original_table)
 	i = i or 1
-	if table[setting[i]] == nil then gspeak:ConsolePrint("Setting "..name.." not found", Color(255,0,0)) return end
+	if table[setting[i]] == nil then gspeak:ConsoleError("Setting "..name.." not found") return end
 	original_table = original_table or table
 	if i < #setting then gspeak:ChangeSetting(setting, table[setting[i]], name, value, i+1, original_table) return end
 	table[setting[i]] = value
 
 	if !gspeak:UpdateQuery(original_table[setting[1]], setting[1]) then return end
-	gspeak:ConsolePrint("Changed "..name.." to "..tostring(value), Color(0,255,0))
+	gspeak:ConsoleSuccess("Changed "..name.." to "..tostring(value))
 
 	if SERVER then
 		net.Start("gspeak_server_settings")
@@ -213,8 +229,8 @@ end
 function gspeak:LoadSettings( table )
 	if !sql.TableExists("gspeak_settings") then
 		sql.Query( "CREATE TABLE gspeak_settings ( name VARCHAR(255) PRIMARY KEY, value TEXT )" )
-	  	if !sql.TableExists("gspeak_settings") then gspeak:ConsolePrint( "Database Error: "..sql.LastError(), Color(255,0,0) ) return end
-		gspeak:ConsolePrint( "Table created successfully", Color(0,255,0) )
+	  	if !sql.TableExists("gspeak_settings") then gspeak:ConsoleError( "Database Error: "..sql.LastError()) return end
+		gspeak:ConsoleSuccess( "Table created successfully")
 		if !table then return end
 		gspeak:QueryTable( table, function(name, value)
 			gspeak:InsertQuery( value, name)
@@ -223,7 +239,7 @@ function gspeak:LoadSettings( table )
 	end
 
 	result = sql.Query( "SELECT * FROM gspeak_settings" )
-	if result == false then gspeak:ConsolePrint( "Database Error: "..sql.LastError(), Color(255,0,0) ) return end
+	if result == false then gspeak:ConsoleError( "Database Error: "..sql.LastError()) return end
 	for name, value in pairs( table ) do
 		local found = false
 		if result then for k, v in pairs(result) do if name == v.name then found = true end end end
@@ -234,7 +250,7 @@ function gspeak:LoadSettings( table )
 	end
 	if !result then return end
 	gspeak:SaveResult(result, table)
-	gspeak:ConsolePrint( "Table loaded successfully", Color(0,255,0) )
+	gspeak:ConsoleSuccess( "Table loaded successfully")
 end
 
 if SERVER then
