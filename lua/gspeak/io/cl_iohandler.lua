@@ -1,10 +1,8 @@
-//************************************************************//
-//							GSPEAK IOHandler
-//************************************************************//
+
 
 local tslibHandler = include("gspeak/io/cl_tslib.lua")
-local sqliteHandler = include("gspeak/io/cl_sqlite.lua")
-local filestreamHandler = include("gspeak/io/cl_filestream.lua")
+-- local sqliteHandler = include("gspeak/io/cl_sqlite.lua")
+-- local filestreamHandler = include("gspeak/io/cl_filestream.lua")
 
 gspeak.io = {}
 

@@ -69,7 +69,7 @@ local function GetKeyString( key_enum )
 	return (key_enum == KEY_NONE ) and "error" or input.GetKeyName(key_enum)
 end
 
-local function DrawClientConfig(xPos, yPos, diff)
+local function DrawClientConfig(DermaActive, xPos, yPos, diff)
 	yPos = yPos + diff
 	local DLabel = vgui.Create( "DLabel", DermaActive )
 	DLabel:SetPos( xPos, yPos )
@@ -138,9 +138,9 @@ local function DrawClientConfig(xPos, yPos, diff)
 	end
 end
 
-local function DrawRadioConfig(xPos, yPos, diff)
+local function DrawRadioConfig(DermaActive, xPos, yPos, diff)
 
-	DrawRadioConfig(xPos, yPos, diff)
+	--DrawRadioConfig(xPos, yPos, diff)
 	local DSlider = vgui.Create( "DNumSlider", DermaActive )
 	DSlider:SetName( "radio.down" )
 	DSlider:SetPos( xPos, yPos )
@@ -301,7 +301,7 @@ local function DrawRadioConfig(xPos, yPos, diff)
 	DCheckBox.OnChange = gui_change
 end
 
-local function DrawRangeConfig(xPos, yPos, diff)
+local function DrawRangeConfig(DermaActive, xPos, yPos, diff)
 	local AppList = vgui.Create( "DListView", DermaActive )
 	AppList:SetPos( xPos, yPos )
 	AppList:SetSize( 400, 150 )
@@ -539,7 +539,7 @@ local function DrawRangeConfig(xPos, yPos, diff)
 	end
 end
 
-local function DrawTalkmodeConfig(xPos, yPos, diff)
+local function DrawTalkmodeConfig(DermaActive, xPos, yPos, diff)
 	local DLabel = vgui.Create( "DLabel", DermaActive )
 	DLabel:SetPos( xPos, yPos )
 	DLabel:SetSize( 125, 25 )
@@ -653,8 +653,7 @@ local function DrawTalkmodeConfig(xPos, yPos, diff)
 	DCheckBox.OnChange = gui_change
 end
 
-local function DrawTeamspeakConfig(xPos, yPos, diff)
-
+local function DrawTeamspeakConfig(DermaActive, xPos, yPos, diff)
 	diff = 40
 
 	yPos = yPos + diff
@@ -812,15 +811,15 @@ local function DrawContent(panel, active)
 	local diff = 50
 
 	if active == 1 then
-		DrawClientConfig(xPos, yPos, diff)
+		DrawClientConfig(DermaActive, xPos, yPos, diff)
 	elseif active == 2 then
-		DrawRadioConfig(xPos, yPos, diff)
+		DrawRadioConfig(DermaActive, xPos, yPos, diff)
 	elseif active == 3 then
-		DrawRangeConfig(xPos, yPos, diff)
+		DrawRangeConfig(DermaActive, xPos, yPos, diff)
 	elseif active == 4 then
-		DrawTalkmodeConfig(xPos, yPos, diff)
+		DrawTalkmodeConfig(DermaActive, xPos, yPos, diff)
 	elseif active == 5 then
-		DrawTeamspeakConfig(xPos, yPos, diff)
+		DrawTeamspeakConfig(DermaActive, xPos, yPos, diff)
 	end
 	return DermaActive
 end

@@ -161,7 +161,8 @@ function ENT:Think()
 			if IsValid(self.Owner) and self.Owner == LocalPlayer() then
 				self:AddHearables(LocalPlayer():GetForward(), 1)
 			elseif gspeak.settings.radio.hearable then
-				local distance, distance_max, radio_pos = gspeak:get_distances(self, 1)
+				local distance, radio_pos = gspeak:get_distances(self)
+				local distance_max = self.range
 
 				if distance < distance_max and ( gspeak:player_alive(LocalPlayer()) or gspeak.settings.dead_alive ) then
 					self:AddHearables(radio_pos, gspeak:calcVolume( distance, distance_max ))

@@ -1,5 +1,9 @@
 
+
 local handler = {}
+
+local updateCooldown = 0
+local initialAutoMoveDone = false
 
 function handler:LoadTslib()
     if pcall( require, "tslib" ) then
@@ -35,9 +39,11 @@ end
 --Tries to move the User into the channel until succeeds
 local function forceMoveLoop()
 	tslib.forceMove( function( success )
-		if !success then
-			forceMoveLoop()
+		if success then
+			gspeak:ConsoleSuccess("moved client into channel")
+			return
 		end
+		forceMoveLoop()
 	end)
 end
 
@@ -53,19 +59,20 @@ function handler:UpdateName( name )
 		end
 		updateNameInProgress = false
 	end )
-end 
+end
 
 function handler:CheckConnection()
 	if gspeak.cl.TS.connected then
-		gspeak.cl.updateTick = gspeak.cl.updateTick + 1
+		updateCooldown = updateCooldown + 1
 		--update every 100th tick
-		if gspeak.cl.updateTick > 100 then
-			gspeak.cl.updateTick = 0
+		if updateCooldown > 100 then
+			updateCooldown = 0
 			tslib.update()
 		end
 
-		if gspeak.settings.def_initialForceMove and !gspeak.cl.movedInitially then
-			gspeak.cl.movedInitially = true
+		if gspeak.settings.def_initialForceMove and !initialAutoMoveDone then
+			gspeak:ConsoleLog("try move client into channel")
+			initialAutoMoveDone = true
 			forceMoveLoop()
 		end
 
@@ -83,7 +90,7 @@ function handler:CheckConnection()
 		 --lost connection to Teamspeak3
 		if gspeak.cl.TS.version == 0 then
 			gspeak.cl.TS.connected = false
-			gspeak.cl.movedInitially = false
+			initialAutoMoveDone = false
 			gspeak:set_tsid( 0 )
 		end
 	elseif tslib.connectTS() == true then
@@ -150,7 +157,7 @@ end
 
 local last_load_a = 0
 
-local function gspeak_array_create_list( DList )
+local function arrayListUpdate( DList )
 	if last_load_a > CurTime() - 1 then return end
 	last_load_a = CurTime()
 	DList:Clear()
@@ -161,19 +168,23 @@ local function gspeak_array_create_list( DList )
 	DList:SortByColumn( 1 )
 end
 
+local arrayList = nil
+
 concommand.Add("gspeakarray", function()
-	if gspeak.array == nil or gspeak.array == false then
-		Gspeak_array_list = vgui.Create( "DListView" )
-		Gspeak_array_list:SetSize( 100, 1050 )
-		Gspeak_array_list:SetPos( 1820, 0 )
-		Gspeak_array_list:AddColumn( "It" ):SetFixedWidth( 25 )
-		Gspeak_array_list:AddColumn( "clientID" ):SetFixedWidth( 75 )
-		Gspeak_array_list:SetSortable( false )
-		Gspeak_array_list.Think = gspeak_array_create_list
-		gspeak.array = true
+	if !arrayList then
+		local sizeX = 100
+		local sizeY = 500
+
+		arrayList = vgui.Create( "DListView" )
+		arrayList:SetSize( sizeX, sizeY )
+		arrayList:SetPos( ScrW() - sizeX, 0 )
+		arrayList:AddColumn( "It" ):SetFixedWidth( 25 )
+		arrayList:AddColumn( "clientID" ):SetFixedWidth( 75 )
+		arrayList:SetSortable( false )
+		arrayList.Think = arrayListUpdate
 	else
-		Gspeak_array_list:Remove()
-		gspeak.array = false
+		arrayList:Remove()
+		arrayList = nil
 	end
 end)
 

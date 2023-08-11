@@ -1,4 +1,4 @@
-AddCSLuaFile()
+
 
 function ENT:Use( activator, caller, useType, value )
 	self.last_use = CurTime()
@@ -234,4 +234,4 @@ function ENT:DefaultInitialize()
 	end
 end
 
-include("gspeak/sh_def_ent.lua")
+include("gspeak/entities/sh_def_ent.lua")

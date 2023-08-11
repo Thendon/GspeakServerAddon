@@ -1,4 +1,4 @@
-AddCSLuaFile()
+
 
 hook.Add("InitPostEntity", "gspeak_rebind_keys", function()
 	if GAMEMODE_NAME == "darkrp" then return end

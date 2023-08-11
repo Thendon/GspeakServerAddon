@@ -1,3 +1,5 @@
+
+
 local head_offset = Vector(0, 0, 80)
 
 hook.Add( "RenderScreenspaceEffects", "gspeak_icon", function()
@@ -35,17 +37,21 @@ function gspeak:DrawPlayerRanges(ply)
     gspeak:draw_range(pos, gspeak.settings.distances.iconview, 0, gspeak.cl.color.white)
 end
 
+local cutMat = Material( "models/wireframe" )
+
 function gspeak:draw_range( pos, size, cut, color)
 	local normal = Vector(0,0,1)
 	render.DrawWireframeSphere(pos, size, 8, 8, color)
 	if cut == 0 then return end
+    
+    render.SetMaterial( cutMat )
 	render.DrawQuadEasy(pos + Vector(0, 0, size) * Vector(1,1,cut), normal, size, size, color, 0)
 	render.DrawQuadEasy(pos + Vector(0, 0, size) * Vector(1,1,cut), -normal, size, size, color, 0)
 	render.DrawQuadEasy(pos - Vector(0, 0, size) * Vector(1,1,cut), normal, size, size, color, 0)
 	render.DrawQuadEasy(pos - Vector(0, 0, size) * Vector(1,1,cut), -normal, size, size, color, 0)
 end
 
-function DrawGspeakIcon(ply, x, y, size)
+local function DrawGspeakIcon(ply, x, y, size)
     surface.SetDrawColor( gspeak.cl.color.white )
     if ply.failed then
         surface.SetMaterial( gspeak.cl.materials.off )
@@ -61,8 +67,6 @@ function DrawGspeakIcon(ply, x, y, size)
 end
 
 function gspeak:DrawOverHead(ply, ang)
-	local client_alive = gspeak:player_alive(LocalPlayer())
-
     local ply_pos
     local isDeadchat = false
     if (gspeak:player_alive(ply)) then
@@ -72,7 +76,7 @@ function gspeak:DrawOverHead(ply, ang)
     else
         if (!gspeak.settings.dead_chat) then return end
         if (gspeak.cl.dead_muted) then return end
-        if (client_alive) then return end
+        if (gspeak:player_alive(LocalPlayer())) then return end
 
         local slot = ply.dead_slot or 1
         ply_pos = gspeak.clientPos + dead_circle[slot]

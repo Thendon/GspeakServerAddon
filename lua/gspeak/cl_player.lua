@@ -1,4 +1,4 @@
-AddCSLuaFile()
+
 
 function gspeak:GetName( ply )
 	if gspeak.settings.nickname then return ply:Nick() end

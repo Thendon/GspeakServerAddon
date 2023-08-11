@@ -1,3 +1,5 @@
+
+
 function ENT:SetupDataTables()
 	self:NetworkVar( "Int", 0, "Freq" )
 	self:NetworkVar( "Int", 1, "Range" )
@@ -117,9 +119,8 @@ function ENT:AddHearables( pos, volume )
 		if gspeak:radio_valid(Entity(v)) then
 			local speaker = Entity(v):GetSpeaker()
 			if gspeak:player_valid(speaker) and gspeak:player_alive(speaker) then
-				local ts_id = gspeak:get_tsid(speaker)
-				if gspeak.cl.TS.connected and speaker != LocalPlayer() and ts_id >= 0 then
-					gspeak.io:SetPlayer(ts_id, volume, v, pos, true, self:EntIndex())
+				if gspeak.cl.TS.connected and speaker != LocalPlayer() and speaker.ts_id >= 0 then
+					gspeak.io:SetPlayer(speaker.ts_id, volume, v, pos, true, self:EntIndex())
 				end
 				continue
 			end

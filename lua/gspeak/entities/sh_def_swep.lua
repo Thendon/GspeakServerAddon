@@ -1,3 +1,5 @@
+
+
 SWEP.Category = "Gspeak"
 SWEP.Author = "Thendon.exe & Kuro"
 SWEP.Instructions = "Left Click - Turn ON/OFF\nRight Click - Open frequency UI\nCAPSLOCK - Default Talk Key\n!gspeak for config"

@@ -1,23 +1,25 @@
-AddCSLuaFile()
+
 
 local informedAboutFail = false
 
+local connectionCooldown = 0
+local updatePlayerCooldown = 0
+
 hook.Add("Think", "gspeak_connect", function()
 	if gspeak.cl.failed then 
-        if !informedAboutFail then
-            informedAboutFail = true
-            net.Start("gspeak_failed")
-            net.SendToServer()
-        end
+        if informedAboutFail then return end
+		informedAboutFail = true
+		net.Start("gspeak_failed")
+		net.SendToServer()
         return 
     end
 
 	local now = CurTime()
-	gspeak.chill = gspeak.chill or now + 10
+	
 	if !gspeak.cl.running then
-		if gspeak.chill > now then return end
+		if connectionCooldown > now then return end
 		gspeak:request_init()
-		gspeak.chill = now + 10
+		connectionCooldown = now + 10
 		return
 	end
 
@@ -25,9 +27,9 @@ hook.Add("Think", "gspeak_connect", function()
 	if !gspeak.cl.TS.connected then return end
 
 	local ts_id = gspeak.io:GetTsId()
-	if ts_id != LocalPlayer().ts_id and gspeak.chill < now then
+	if ts_id != LocalPlayer().ts_id and connectionCooldown < now then
 		gspeak:set_tsid( ts_id )
-		gspeak.chill = now + 10
+		connectionCooldown = now + 10
 	end
 
 	gspeak.cl.TS.inChannel = gspeak.io:IsInChannel()
@@ -35,17 +37,18 @@ hook.Add("Think", "gspeak_connect", function()
 	if !gspeak.cl.TS.inChannel then return end
 
 	gspeak.io:Tick()
-end
+end)
 
 --pretty stupid solution, maybe not necessary
 hook.Add("Think", "gspeak_update_playerlist", function()
 	if !gspeak.cl.TS.inChannel then return end
 
-    if gspeak.chill < now then
-        gspeak:UpdatePlayers()
-        gspeak.chill = now + 10
-    end
-end
+	local now = CurTime()
+    if updatePlayerCooldown > now then return end
+
+	gspeak:UpdatePlayers()
+	updatePlayerCooldown = now + 10
+end)
 
 function gspeak:set_tsid( ts_id )
 	-- if ts_id == 0 then
@@ -80,7 +83,7 @@ end
 
 net.Receive("ts_ply_id", function( len )
 	local ply = net.ReadEntity()
-	if (ply.ts_id) then gspeak.io:RemovePlayer(ply:EntIndex(), false, -1) end
+	--if (ply.ts_id) then gspeak.io:RemovePlayer(ply:EntIndex(), false, -1) end
 	ply.ts_id = net.ReadInt( 32 )
 end)
 

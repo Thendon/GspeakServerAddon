@@ -1,3 +1,5 @@
+
+
 surface.CreateFont("CaptureItBug", {font = "Capture it", size = 100 } )
 surface.CreateFont("CaptureItSmall", {font = "Capture it", size = 40 } )
 surface.CreateFont("CaptureItTiny", {font = "Capture it", size = 20 } )
@@ -60,10 +62,10 @@ gspeak.cl = {
 		black = Color( 44, 62, 80, 255 ),
 		white = Color( 255, 255, 255, 255 ),
 		yellow = Color( 241, 196, 15, 255 )
-	},
-	updateTick = 0
+	}
 }
 
+PrintTable(gspeak.cl)
 include("vgui/gspeak_ui.lua")
 
 //************************************************************//
@@ -171,10 +173,10 @@ end)
 
 include("gspeak/io/cl_iohandler.lua")
 include("gspeak/cl_player.lua")
-include("gspeak/cl_net.lua")
+include("gspeak/cl_input.lua")
 include("gspeak/cl_input.lua")
 include("gspeak/cl_radio.lua")
 include("gspeak/cl_animations.lua")
 include("gspeak/cl_connection.lua")
 include("gspeak/cl_volume_control.lua")
-include("gspeak/ui/cl_overhead.lua")
+include("gspeak/ui/cl_wgui.lua")

@@ -1,4 +1,4 @@
-AddCSLuaFile()
+
 
 net.Receive("radio_page_set", function( len )
 	local radio = net.ReadEntity()

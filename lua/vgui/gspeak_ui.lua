@@ -174,7 +174,7 @@ function gspeak:DrawStatus()
 	if gspeak.cl.TS.inChannel and LocalPlayer().ts_id and LocalPlayer().ts_id != 0 then return end
 
 	local diffY = 40
-	local sizeX = 320
+	local sizeX = 340
 	local sizeY = 200
 	local posX, posY = gspeak:hud_pos(gspeak.settings.HUD.status.x, gspeak.settings.HUD.status.y, sizeX, sizeY, gspeak.settings.HUD.status.align)
 
@@ -187,7 +187,13 @@ function gspeak:DrawStatus()
 	color = gspeak.cl.color.yellow
 	local loadingY = posY
 	local header = "TsLib: Scanning"
-	local text = "Searching for gmcl_tslib_win32.dll!"
+
+	local branch = "32"
+	if BRANCH == "x86-64" then
+		branch = "64"
+	end
+	local text = "Searching for gmcl_tslib_win"..branch ..".dll!"
+
 	if gspeak.cl.failed then
 		color = gspeak.cl.color.red
 		errorY = posY - 10

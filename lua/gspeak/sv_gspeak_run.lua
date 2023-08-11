@@ -1,21 +1,25 @@
-AddCSLuaFile( "gspeak/cl_gspeak_run.lua" )
-AddCSLuaFile( "gspeak/cl_functions.lua" )
-AddCSLuaFile( "gspeak/cl_net.lua" )
-AddCSLuaFile( "gspeak/cl_volume_control.lua" )
-AddCSLuaFile( "gspeak/entities/sh_def_swep.lua" )
-AddCSLuaFile( "gspeak/entities/sh_def_station.lua" )
-AddCSLuaFile( "gspeak/entities/sh_def_ent.lua" )
-AddCSLuaFile( "vgui/gspeak_config.lua" )
-AddCSLuaFile( "vgui/gspeak_hearable.lua" )
-AddCSLuaFile( "vgui/gspeak_ui.lua" )
 
-AddCSLuaFile( "gspeak/io/cl_iohandler.lua")
-AddCSLuaFile( "gspeak/io/cl_tslib.lua")
-AddCSLuaFile( "gspeak/io/cl_sqlite.lua")
-AddCSLuaFile( "gspeak/io/cl_filestream.lua")
+local function AddCSLuaDir(dir)
+    dir = dir .. "/"
+    local files, dirs = file.Find(dir.."*", "LUA")
 
-AddCSLuaFile( "gspeak/ui/cl_wgui.lua")
+    for k, file in ipairs(files) do
+        if !string.EndsWith(file, ".lua") then continue end
+		
+		local fileSide = string.lower(string.Left(file , 3))
+		if fileSide != "sh_" and fileSide != "cl_" then continue end
 
+		AddCSLuaFile(dir..file)
+		gspeak:ConsoleLog("add file "..dir..file)
+    end
+    
+    for k, subdir in ipairs(dirs) do
+        --print("[AUTOLOAD] Directory: " .. dir)
+        AddCSLuaDir(dir..subdir)
+    end
+end
+
+AddCSLuaDir("gspeak")
 
 util.AddNetworkString( "ts_talking" )
 util.AddNetworkString( "ts_ply_talking" )
@@ -167,6 +171,7 @@ net.Receive("radio_online_change",function( len, ply )
 		radio:EmitSound("radio_booting")
 	else
 		radio:EmitSound("radio_turnoff")
+	end
 end)
 
 net.Receive("radio_freq_change", function( len, ply )

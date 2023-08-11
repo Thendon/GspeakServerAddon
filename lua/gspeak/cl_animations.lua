@@ -1,4 +1,4 @@
-AddCSLuaFile()
+
 
 hook.Add("InitPostEntity", "gspeak_override_animations", function()
     function GAMEMODE:MouthMoveAnimation( ply )

@@ -1,6 +1,6 @@
 local last_load_w = 0
 
-function gspeak_players_create_list( DList )
+local function gspeak_players_create_list( DList )
 	if !gspeak.hearable then return end
 	if last_load_w > CurTime() - 1 then return end
 	last_load_w = CurTime()

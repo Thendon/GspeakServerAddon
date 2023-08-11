@@ -1,5 +1,4 @@
 AddCSLuaFile()
-include( "gspeak/sh_def_swep.lua" )
 
 SWEP.Category = "Gspeak"
 SWEP.Spawnable = false
@@ -47,3 +46,5 @@ function SWEP:Initialize()
 
 	self:DefaultInitialize()
 end
+
+include( "gspeak/entities/sh_def_swep.lua" )

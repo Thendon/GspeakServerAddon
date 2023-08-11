@@ -1,5 +1,4 @@
 AddCSLuaFile()
-include( "gspeak/sh_def_swep.lua" )
 
 SWEP.Spawnable = true
 SWEP.PrintName = "Radio"
@@ -28,4 +27,4 @@ function SWEP:Initialize()
 	self:DefaultInitialize()
 end
 
-include( "gspeak/sh_def_swep.lua" )
+include( "gspeak/entities/sh_def_swep.lua" )
