@@ -26,9 +26,9 @@ hook.Add( "RenderScreenspaceEffects", "gspeak_icon", function()
 end)
 
 function gspeak:DrawPlayerRanges(ply)
-    if !gspeak:player_alive(ply) then return end
+    if !gspeak:IsPlayerAlive(ply) then return end
 
-    local pos = ply:GetPos() + gspeak:get_offset(ply)
+    local pos = ply:GetAudioSourcePosition() --ply:GetPos() + gspeak:get_offset(ply)
     for i = 1, #gspeak.settings.distances.modes, 1 do
         local power = i % 3
         local col = Color(power==0 and 255 or 0, power==1 and 255 or 0, power==2 and 255 or 0)
@@ -56,10 +56,10 @@ local function DrawGspeakIcon(ply, x, y, size)
     if ply.failed then
         surface.SetMaterial( gspeak.cl.materials.off )
         surface.DrawTexturedRect( x, y, size, size )
-    elseif ply.ts_id == 0 then --loading
+    elseif ply:GetTsId() == 0 then --loading
         gspeak:DrawLoading(x, y+7, 4, 4, gspeak.cl.color.white)
     else
-        local talkmode = gspeak:get_talkmode( ply )
+        local talkmode = ply:GetTalkmode()
         local _, _, mat, _ = gspeak:get_talkmode_details(talkmode)
         surface.SetMaterial( mat or gspeak.cl.materials.default_icon )
         surface.DrawTexturedRect( x, y, size, size )
@@ -69,22 +69,22 @@ end
 function gspeak:DrawOverHead(ply, ang)
     local ply_pos
     local isDeadchat = false
-    if (gspeak:player_alive(ply)) then
+    if (gspeak:IsPlayerAlive(ply)) then
 		ply_pos = ply:GetPos()
         --out of defined view range
         if (LocalPlayer():GetPos():Distance(ply_pos) >= tonumber(gspeak.settings.distances.iconview)) then return end
     else
-        if (!gspeak.settings.dead_chat) then return end
-        if (gspeak.cl.dead_muted) then return end
-        if (gspeak:player_alive(LocalPlayer())) then return end
+        if (!gspeak.settings.deadHearsDead) then return end
+        if (gspeak.cl.deadMuted) then return end
+        if (gspeak:IsPlayerAlive(LocalPlayer())) then return end
 
         local slot = ply.dead_slot or 1
-        ply_pos = gspeak.clientPos + dead_circle[slot]
+        ply_pos = gspeak:GetAudioListenerPosition() + dead_circle[slot]
         isDeadchat = true
     end
 
     --no reason to draw then
-    if !ply.talking and ply.ts_id != 0 and !ply.failed then return end
+    if !ply:IsTalking() and ply:GetTsId() != 0 and !ply.failed then return end
 
     local pos = ply_pos + head_offset
     local pos_y = -15
@@ -100,11 +100,11 @@ function gspeak:DrawOverHead(ply, ang)
     end
     
     if drawName then
-        local ply_name = gspeak:GetName( ply )
-        if !gspeak.settings.head_icon and ply.ts_id == 0 then
+        local ply_name = ply:GetTeamspeakName()
+        if !gspeak.settings.head_icon and ply:GetTsId() == 0 then
             if ply.failed then
                 ply_name = "(error)"
-            elseif ply.ts_id == 0 then
+            elseif ply:GetTsId() == 0 then
                 ply_name = "(connecting)"
             end
         end

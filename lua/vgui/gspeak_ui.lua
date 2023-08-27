@@ -19,7 +19,7 @@ hook.Add( "Think", "gspeak_ui_control", function()
 	if !input.IsKeyDown( gspeak.cl.settings.key ) and talkMenuState then
 		gui.EnableScreenClicker(false)
 		talkMenuState = false
-		if gspeak.cl.tmm.selected != gspeak.cl.settings.talkmode then	gspeak:change_talkmode( gspeak.cl.tmm.selected ) end
+		if gspeak.cl.tmm.selected != gspeak.cl.settings.talkmode then	gspeak:ChangeTalkmode( gspeak.cl.tmm.selected ) end
 	end
 end)
 
@@ -47,7 +47,7 @@ function gspeak:VersionWord( plugin )
 end
 
 function gspeak:DrawHUD()
-	if LocalPlayer().talking then
+	if LocalPlayer():IsTalking() then
 		local x, y = gspeak:hud_pos(gspeak.settings.HUD.console.x, gspeak.settings.HUD.console.y, 55, 20, gspeak.settings.HUD.console.align)
 		local mode_name, _, _, mode_mat_ui = gspeak:get_talkmode_details(gspeak.cl.settings.talkmode)
 		gspeak:DrawText(mode_name, x, y, gspeak.cl.color.green)
@@ -59,7 +59,7 @@ function gspeak:DrawHUD()
 		surface.DrawTexturedRect( x, y, size, size)
 	end
 
-	if !gspeak:player_alive(LocalPlayer()) and gspeak.cl.dead_muted then
+	if !gspeak:IsPlayerAlive(LocalPlayer()) and gspeak.cl.deadMuted then
 		local sizeX = 200
 		local sizeY = 50
 		local x, y = gspeak:hud_pos(gspeak.settings.HUD.status.x, gspeak.settings.HUD.status.y, sizeX, sizeY, gspeak.settings.HUD.status.align)
@@ -171,7 +171,7 @@ function gspeak:DrawLoading(x, y, offset, size, color)
 end
 
 function gspeak:DrawStatus()
-	if gspeak.cl.TS.inChannel and LocalPlayer().ts_id and LocalPlayer().ts_id != 0 then return end
+	if gspeak.cl.TS.inChannel and LocalPlayer():GetTsId() and LocalPlayer():GetTsId() != 0 then return end
 
 	local diffY = 40
 	local sizeX = 340
@@ -248,7 +248,7 @@ function gspeak:DrawStatus()
 		surface.DrawTexturedRect( loadingX, errorY, 64, 64)
 	end
 
-	if gspeak.cl.TS.connected and gspeak.cl.TS.inChannel and (!LocalPlayer().ts_id or LocalPlayer().ts_id == 0) then
+	if gspeak.cl.TS.connected and gspeak.cl.TS.inChannel and (!LocalPlayer():GetTsId() or LocalPlayer():GetTsId() == 0) then
 		header = "Broadcasting Variables"
 		text = "Sending your information to the other players."
 	end

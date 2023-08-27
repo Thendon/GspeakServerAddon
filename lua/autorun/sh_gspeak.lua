@@ -1,22 +1,11 @@
-//************************************************************//
-//
-//	Gspeak by Thendon.exe
-//	
-//	Thanks Sanuye for teaching me c++
-//	Thanks El-Marto for his artwork
-//	Thanks Zigi for helping me creating the Easy-Installer
-//	Thanks Kuro for his 3D-Models
-//	Thanks Nockich for your advise
-//	Thanks Rataj for improoving the plugin
-//	and Thanks to all Betatesters, Servers
-//
-//************************************************************//
 
 AddCSLuaFile()
-gspeak = { version = 3000 };
+gspeak = gspeak or {}
+gspeak.version = 3000
 
 //************************************************************//
-// Change these Variables ingame by entering !gspeak if possible
+// Change these Variables ingame by entering 
+// !gspeak in chat or gspeak in console
 //************************************************************//
 
 --Setting Default variables
@@ -54,15 +43,17 @@ gspeak.settings = {
 		def_key = KEY_CAPSLOCK
 	},
 	password = "",
+	channelName = "",
 	overrideV = false,
 	overrideC = false,
-	dead_chat = false,
-	dead_alive = false,
+	deadHearsDead = false,
+	deadHearsAlive = true,
 	auto_fastdl = true,
 	trigger_at_talk = false,
 	nickname = true,
 	def_initialForceMove = true,
-	updateName = false
+	updateName = false,
+	def_deadVolume = 0.9
 }
 
 gspeak.sounds = {
@@ -73,14 +64,25 @@ gspeak.sounds = {
 							"radio_click", "radio_release", "radio_turnoff", "radio_turnoff_s" }
 }
 
+gspeak.voiceEffects = {
+	None = 0,
+	Radio = 1,
+	Water = 2,
+	Wall = 3,
+	//Dead = 4
+}
+
 local meta = FindMetaTable("Entity")
 function meta:IsRadio()
 	return self.Radio and true or false
 end
+function meta:IsGspeakEntity()
+	return false
+end
 
 include("gspeak/sh_logging.lua")
 
-function gspeak:add_sound(path, channel, volume, level, pitch)
+function gspeak:AddSound(path, channel, volume, level, pitch)
 	local _, _, name = string.find(path, "/.+/(.+)[.]")
 	channel = channel or CHAN_ITEM
 	volume = volume or 1.0
@@ -107,7 +109,7 @@ function gspeak:radio_valid(radio)
 	return radio and IsValid( radio ) and radio:IsRadio()
 end
 
-function gspeak:get_talkmode_range(talkmode)
+function gspeak:GetTalkmodeRange(talkmode)
 	if talkmode > #gspeak.settings.distances.modes then return 0 end
 	local mode = gspeak.settings.distances.modes[talkmode]
 	if !mode then return 0 end

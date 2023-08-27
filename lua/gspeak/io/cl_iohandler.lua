@@ -18,12 +18,28 @@ function gspeak.io:CheckConnection()
     tslibHandler:CheckConnection()
 end
 
-function gspeak.io:SetPlayer(tsId, volume, playerIndex, pos, isEntity, entityIndex)
-    tslibHandler:SetPlayer(tsId, volume, playerIndex, pos, isEntity, entityIndex)
+function gspeak.io:Disconnect()
+    tslibHandler:Disconnect()
 end
 
-function gspeak.io:RemovePlayer(playerIndex, isEntity, entityIndex)
-    tslibHandler:RemovePlayer(playerIndex, isEntity, entityIndex)
+-- function gspeak.io:SetPlayer(tsId, volume, playerIndex, pos, isEntity, entityIndex)
+--     tslibHandler:SetPlayer(tsId, volume, playerIndex, pos, isEntity, entityIndex)
+-- end
+
+-- function gspeak.io:RemovePlayer(playerIndex, isEntity, entityIndex)
+--     tslibHandler:RemovePlayer(playerIndex, isEntity, entityIndex)
+-- end
+
+function gspeak.io:SetHearable(tsId, volume, pos, effect)
+    tslibHandler:SetHearable(tsId, volume, pos, effect)
+end
+
+function gspeak.io:RemoveHearable(tsId)
+    tslibHandler:RemoveHearable(tsId)
+end
+
+function gspeak.io:GetHearableData(tsId)
+    return tslibHandler:GetHearableData(tsId)
 end
 
 function gspeak.io:SetLocalPlayer(forward, up)
@@ -50,6 +66,6 @@ function gspeak.io:GetHearables()
     return tslibHandler:GetHearables()
 end
 
-function gspeak.io:Tick()
-    tslibHandler:Tick()
-end
+-- function gspeak.io:Tick()
+--     tslibHandler:Tick()
+-- end

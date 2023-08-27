@@ -10,9 +10,8 @@ local function gspeak_players_create_list( DList )
 		local radio = v.radio_id
 		local ent = v.ent_id
 		local id = tonumber(k)
-		local talking = false
 		if v.radio and gspeak:radio_valid(Entity(v.radio_id)) and gspeak:player_valid(Entity(v.radio_id):GetSpeaker()) then
-			radio = gspeak:GetName( Entity(v.radio_id):GetSpeaker() )
+			radio = Entity(v.radio_id):GetSpeaker():GetTeamspeakName()
 		else
 			radio = ""
 		end
@@ -21,11 +20,8 @@ local function gspeak_players_create_list( DList )
 		elseif gspeak:radio_valid(Entity(v.ent_id)) and gspeak:player_valid(Entity(v.ent_id):GetSpeaker()) then
 			ent = Entity(v.ent_id):GetSpeaker()
 		end
-		if id < 10 then
-			id = tostring("0"..id)
-		end
 
-		DList:AddLine( id, gspeak:GetName( ent ), v.radio, radio, ent.talking )
+		DList:AddLine( id, ent:GetTeamspeakName(), v.radio, radio, v.radio_id, ent:IsTalking(), v.volume )
 	end
 	DList:SortByColumn( 1 )
 end
@@ -39,7 +35,9 @@ concommand.Add("gspeakwho", function()
 		Gspeak_who_list:AddColumn( "Who?" )
 		Gspeak_who_list:AddColumn( "Radio?..." ):SetFixedWidth( 50 )
 		Gspeak_who_list:AddColumn( "...of" )
+		Gspeak_who_list:AddColumn( "rID" ):SetFixedWidth( 25 )
 		Gspeak_who_list:AddColumn( "talking?" ):SetFixedWidth( 50 )
+		Gspeak_who_list:AddColumn( "volume" ):SetFixedWidth( 100 )
 		Gspeak_who_list:SetSortable( false )
 		Gspeak_who_list.Think = gspeak_players_create_list
 		gspeak.who = true

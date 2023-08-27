@@ -29,21 +29,35 @@ function handler:LoadTslib()
 end
 
 function handler:SendSettings()
-	if !tslib.sendSettings(	gspeak.settings.password,
-							gspeak.settings.radio.down,
-							gspeak.settings.radio.dist,
-							gspeak.settings.radio.volume,
-							gspeak.settings.radio.noise ) then gspeak:chat_text("channel Password too long!", true) end
+	tslib.sendSettings(	gspeak.settings.radio.down,
+						gspeak.settings.radio.dist,
+						gspeak.settings.radio.volume,
+						gspeak.settings.radio.noise )
 end
 
 --Tries to move the User into the channel until succeeds
 local function forceMoveLoop()
-	tslib.forceMove( function( success )
+	local success = tslib.forceMove( function( success )
 		if success then
-			gspeak:ConsoleSuccess("moved client into channel")
+			gspeak.ConsoleSuccess("moved client into channel")
 			return
 		end
 		forceMoveLoop()
+	end, gspeak.settings.password, gspeak.settings.channelName)
+
+	if (!success) then
+		gspeak.ConsoleError("force move failed")
+	end
+end
+
+--unused (could be triggered by admin or map change?)
+local function forceKickLoop()
+	tslib.forceKick( function(success)
+		if success then
+			gspeak.ConsoleSuccess("kicked client from channel")
+			return
+		end
+		forceKickLoop()		
 	end)
 end
 
@@ -53,9 +67,9 @@ function handler:UpdateName( name )
 	updateNameInProgress = true
 	tslib.sendName( name, function( success )
 		if success then
-			gspeak:chat_text("changed Teamspeak nickname to " .. name)
+			gspeak:ChatLog("changed Teamspeak nickname to " .. name)
 		else
-			gspeak:chat_text("failed to update nickname (" .. name .. ")", true)
+			gspeak:ChatError("failed to update nickname (" .. name .. ")")
 		end
 		updateNameInProgress = false
 	end )
@@ -71,13 +85,13 @@ function handler:CheckConnection()
 		end
 
 		if gspeak.settings.def_initialForceMove and !initialAutoMoveDone then
-			gspeak:ConsoleLog("try move client into channel")
+			gspeak.ConsoleLog("try move client into channel")
 			initialAutoMoveDone = true
 			forceMoveLoop()
 		end
 
 		if gspeak.settings.updateName then
-			local name = gspeak:GetName( LocalPlayer() )
+			local name = LocalPlayer():GetTeamspeakName()
 			--compareName( string ) compares the users teamspeak name with the string
 			--with Teamspeaks name buffer-limits in mind
 			if !tslib.compareName( name ) then
@@ -112,20 +126,51 @@ function handler:CheckConnection()
 	end
 end
 
+function handler:Disconnect()
+	if gspeak.cl.TS.connected then
+		return
+	end
+
+	tslib.discoTS()
+end
+
 function handler:SendName(name)
     tslib.sendName( name, function( success )
-        gspeak:ConsolePrint( "name change " .. (success and "successfull" or "failed" ))
+        gspeak.ConsolePrint( "name change " .. (success and "successfull" or "failed" ))
     end )
 end
 
---playerIndex is entity id, could be changed to tsId without issues (remove player when id changes of course)
-function handler:RemovePlayer(playerIndex, isEntity, entityIndex)
-    tslib.delPos(playerIndex, isEntity, entityIndex)
+-- function handler:RemovePlayer(playerIndex, isEntity, entityIndex)
+-- 	tslib.delPos(playerIndex, isEntity, entityIndex)
+-- end
+
+-- function handler:SetPlayer(tsId, volume, playerEntIndex, pos, isEntity, entityIndex)
+-- 	tslib.sendPos(tsId, volume, playerEntIndex, pos.x, pos.y, pos.z, isEntity, entityIndex)
+-- end
+
+--DREAM VERSION
+
+-- function handler:SetPlayer(tsId, volume, playerEntIndex, pos, isRadio, entityIndex)
+-- 	tslib.sendPos(tsId, volume, playerEntIndex, pos.x, pos.y, pos.z, isRadio, entityIndex)
+-- end
+
+-- function handler:RemovePlayer(playerIndex, isEntity, entityIndex)
+--     tslib.delPos(playerIndex, isEntity, entityIndex)
+-- end
+
+function handler:SetHearable(tsId, volume, pos, effect)
+	tslib.sendPlayer(tsId, volume, pos.x, pos.y, pos.z, effect)
 end
 
-function handler:SetPlayer(tsId, volume, playerIndex, pos, isEntity, entityIndex)
-    tslib.sendPos(tsId, volume, playerIndex, pos.x, pos.y, pos.z, isEntity, entityIndex)
+function handler:RemoveHearable(tsId)
+	tslib.removePlayer(tsId)
 end
+
+function handler:GetHearableData(tsId)
+	return tslib.getPlayerData(tsId)
+end
+
+--DREAM VERSION
 
 function handler:SetLocalPlayer(foward, up)
     tslib.sendClientPos(foward.x, foward.y, foward.z, up.x, up.y, up.z)
@@ -143,13 +188,13 @@ function handler:GetTsId()
 	return tslib.getTsID()
 end
 
-function handler:GetHearables()
-	return tslib.getAllID()
-end
+-- function handler:GetHearables()
+-- 	return tslib.getAllID()
+-- end
 
-function handler:Tick()
-	tslib.tick()
-end
+-- function handler:Tick()
+-- 	tslib.tick()
+-- end
 
 //************************************************************//
 //							DEBUGGING

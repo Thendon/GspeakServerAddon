@@ -19,7 +19,7 @@ function gspeak:MouthMoveAnimation( ply )
 	ply.mouthweight = ply.mouthweight or 0
 
 	local new_weight = 0
-	if ply.volume != 0 and ply.hearable and ply.talking then
+	if ply.volume != 0 and ply.hearable and ply:IsTalking() then
 		new_weight = math.Approach(ply.mouthweight,math.Clamp( 1 + math.log(ply.volume, 10), 0, 1 ),FrameTime() * 7)
 	end
 

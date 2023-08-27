@@ -54,7 +54,7 @@ gspeak.cl = {
 		dead = Vector(0,0,0),
 		vehicle = Vector(0,0,30)
 	},
-	dead_muted = false,
+	deadMuted = false,
 	color = {
 		red = Color( 231, 76, 60, 255),
 		green = Color( 46, 204, 113, 255 ),
@@ -65,21 +65,15 @@ gspeak.cl = {
 	}
 }
 
-PrintTable(gspeak.cl)
 include("vgui/gspeak_ui.lua")
 
 //************************************************************//
 //								Utils
 //************************************************************//
 
-function gspeak:chat_text(text, error)
-	--error = error or false
-	chat.AddText( gspeak.cl.color.red, "[Gspeak]", error and " ERROR " or " ", gspeak.cl.color.black, text)
-end
-
 function gspeak:NoDoubleEntry(variable, Table)
 	for k, v in pairs(Table) do
-		if v == variable then	return	end
+		if v == variable then return end
 	end
 	table.insert(Table, variable)
 end
@@ -97,7 +91,7 @@ local workshop = file.Find("sound/" .. gspeak.sounds.path.cl .. "*","WORKSHOP")
 table.Add (files, workshop)
 
 for k, v in pairs(files) do
-	gspeak:add_sound(gspeak.sounds.path.cl .. v)
+	gspeak:AddSound(gspeak.sounds.path.cl .. v)
 end
 
 hook.Add("OnEntityCreated", "ent_array", function( ent )
@@ -130,6 +124,10 @@ function gspeak:SetDefaultVars()
 		gspeak.cl.settings.radio_key = gspeak.settings.radio.def_key
 		gspeak:ChangeSetting( { "radio_key" }, gspeak.cl.settings, "radio_key", gspeak.settings.radio.def_key )
 	end
+	if !gspeak.cl.settings.deadVolume then
+		gspeak.cl.settings.deadVolume = gspeak.settings.def_deadVolume
+		gspeak:ChangeSetting( { "deadVolume" }, gspeak.cl.settings, "deadVolume", gspeak.settings.def_deadVolume )
+	end
 end
 
 net.Receive("gspeak_server_settings", function()
@@ -140,27 +138,26 @@ net.Receive("gspeak_server_settings", function()
 end)
 
 net.Receive("gspeak_init", function( len )
-	for k, v in pairs(ents.GetAll()) do
-		if !IsValid(v) then continue end
-		if v:IsPlayer() then
-			gspeak:NoDoubleEntry(v, gspeak.cl.players)
-		elseif v:IsRadio() then
-			gspeak:NoDoubleEntry(v, gspeak.cl.radios)
-		end
-	end
+	-- for k, v in pairs(ents.GetAll()) do
+	-- 	if !IsValid(v) then continue end
+	-- 	if v:IsPlayer() then
+	-- 		gspeak:NoDoubleEntry(v, gspeak.cl.players)
+	-- 	elseif v:IsRadio() then
+	-- 		gspeak:NoDoubleEntry(v, gspeak.cl.radios)
+	-- 	end
+	-- end
 
 	if GAMEMODE_NAME == "terrortown" then gspeak.terrortown = true end
 
-	local ply_var_table = net.ReadTable()
+	--local ply_var_table = net.ReadTable()
 	--local radio_var_table = net.ReadTable()
 	gspeak.settings = net.ReadTable()
 
-	for k, v in pairs(ply_var_table) do
-		v[1].talkmode = v[2]
-		v[1].ts_id = v[3]
-		v[1].talking = v[4]
-		--v[1].range = v[5] --TODO: people told me this might be broken
-	end
+	-- for k, v in pairs(ply_var_table) do
+	-- 	v[1].talkmode = v[2]
+	-- 	v[1].ts_id = v[3]
+	-- 	v[1].talking = v[4]
+	-- end
 
 	--cast icon picture to material and save it
 	gspeak:RefreshIcons()

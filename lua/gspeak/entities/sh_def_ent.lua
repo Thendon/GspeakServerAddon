@@ -1,4 +1,40 @@
+function ENT:IsGspeakEntity()
+	return true
+end
 
+function ENT:VoiceEffect()
+	return gspeak.voiceEffects.Radio
+end
+
+function ENT:GetAudioSourceRange()
+	return self.range
+end
+
+function ENT:GetAudioSourcePosition()
+	return self:GetPos()
+end
+
+function ENT:GetSpeakers()
+	local speakers = {}
+
+	for k, radio_id in pairs(self.connected_radios) do
+		local ent = Entity(radio_id)
+		if !IsValid(ent) then 
+			self:RemoveId(radio_id, k)
+			continue 
+		end
+
+		local ply = ent:GetSpeaker()
+		if !IsValid(ply) then 
+			self:RemoveId(radio_id, k)
+			continue 
+		end
+
+		table.insert(speakers, ply)
+	end
+
+	return speakers
+end
 
 function ENT:SetupDataTables()
 	self:NetworkVar( "Int", 0, "Freq" )
@@ -10,13 +46,28 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Entity", 0, "Speaker" )
 end
 
+function ENT:OnRemove()
+	local connectedRadios = self.connected_radios
+	local entIndex = self:EntIndex()
+
+	timer.Simple( 0, function()
+		if IsValid( self ) then return end
+		
+		for k, radio_id in pairs(connectedRadios) do
+			local ent = Entity(radio_id)
+			if !IsValid(ent) then continue end
+			ent:RemoveRadio( entIndex )
+		end
+	end)
+end
+
 function ENT:CheckTalking()
 	if !self.settings.trigger_at_talk then return end
 	for k, v in next, self.connected_radios do
 		if gspeak:radio_valid(Entity(v)) then
 			local speaker = Entity(v):GetSpeaker()
 			if gspeak:player_valid(speaker) then
-				self:TriggerCom( speaker.talking )
+				self:TriggerCom( speaker:IsTalking() )
 			end
 		end
 	end
@@ -75,24 +126,26 @@ function ENT:Rescan(own_freq, own_online, own_sending)
 			table.remove(gspeak.cl.radios, k)
 			continue
 		end
+
 		local v_id = v:EntIndex()
 		local v_freq = v:GetFreq()
-		if radio_id != v_id then
-			if self.online and v:GetOnline() and self.freq == v_freq then
-				if v:GetSending() then
-					self:AddRadio(v_id)
-				else
-					self:RemoveRadio(v_id)
-				end
-				if self.sending then
-					v:AddRadio(radio_id)
-				else
-					v:RemoveRadio(radio_id)
-				end
+
+		if radio_id == v_id then continue end
+	
+		if self.online and v:GetOnline() and self.freq == v_freq then
+			if v:GetSending() then
+				self:AddRadio(v_id)
 			else
 				self:RemoveRadio(v_id)
+			end
+			if self.sending then
+				v:AddRadio(radio_id)
+			else
 				v:RemoveRadio(radio_id)
 			end
+		else
+			self:RemoveRadio(v_id)
+			v:RemoveRadio(radio_id)
 		end
 	end
 end
@@ -113,14 +166,15 @@ function ENT:checkTime(diff)
 	return false
 end
 
+--obsolete
 function ENT:AddHearables( pos, volume )
 	for k, v in next, self.connected_radios do
 		local remove_v = false
 		if gspeak:radio_valid(Entity(v)) then
 			local speaker = Entity(v):GetSpeaker()
-			if gspeak:player_valid(speaker) and gspeak:player_alive(speaker) then
-				if gspeak.cl.TS.connected and speaker != LocalPlayer() and speaker.ts_id >= 0 then
-					gspeak.io:SetPlayer(speaker.ts_id, volume, v, pos, true, self:EntIndex())
+			if gspeak:player_valid(speaker) and gspeak:IsPlayerAlive(speaker) then
+				if gspeak.cl.TS.connected and speaker != LocalPlayer() and speaker:GetTsId() != 0 then
+					gspeak.io:SetPlayer(speaker:GetTsId(), volume, v, pos, true, self:EntIndex())
 				end
 				continue
 			end

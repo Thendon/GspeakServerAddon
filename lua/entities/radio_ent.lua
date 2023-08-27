@@ -20,7 +20,7 @@ function ENT:Initialize()
 		net.Start("radio_init")
 			net.WriteEntity( self )
 			net.WriteEntity( LocalPlayer() )
-		net.SendToServer()
+		eToServer()
 	end
 end
 
@@ -70,9 +70,9 @@ function ENT:Draw()
 					if gspeak:radio_valid(Entity(v)) then
 						local speaker = Entity(v):GetSpeaker()
 						if gspeak:player_valid(speaker) then
-							draw.DrawText( string.sub(gspeak:GetName( speaker ),1,14), "BudgetLabel", x, y, white, TEXT_ALIGN_LEFT )
+							draw.DrawText( string.sub(speaker:GetTeamspeakName(),1,14), "BudgetLabel", x, y, white, TEXT_ALIGN_LEFT )
 							local status = "idl"
-							if speaker.talking then status = "inc" end
+							if speaker:IsTalking() then status = "inc" end
 							draw.DrawText( "| "..status, "BudgetLabel", x+140, y, white, TEXT_ALIGN_RIGHT )
 							y = y + 10
 						end
@@ -164,7 +164,7 @@ function ENT:Think()
 				local distance, radio_pos = gspeak:get_distances(self)
 				local distance_max = self.range
 
-				if distance < distance_max and ( gspeak:player_alive(LocalPlayer()) or gspeak.settings.dead_alive ) then
+				if distance < distance_max and ( gspeak:IsPlayerAlive(LocalPlayer()) or gspeak.settings.deadHearsAlive ) then
 					self:AddHearables(radio_pos, gspeak:calcVolume( distance, distance_max ))
 				end
 			end

@@ -105,7 +105,7 @@ function ENT:Draw()
 			for k, v in pairs(self.connected_radios) do
 				if k == 4 then break end
 				y = y + 10
-				draw.DrawText( string.sub(gspeak:GetName( Entity(v):GetSpeaker() ), 1, 13), "BudgetLabel", 0, y, Color( 255, 255, 255, 255 ), TEXT_ALIGN_LEFT )
+				draw.DrawText( string.sub(Entity(v):GetSpeaker():GetTeamspeakName(), 1, 13), "BudgetLabel", 0, y, Color( 255, 255, 255, 255 ), TEXT_ALIGN_LEFT )
 			end
 		elseif self.menu.page == 2 then
 			draw.DrawText("FREQUENCY :","BudgetLabel", x, y, Color( 255, 255, 255, 255 ), TEXT_ALIGN_LEFT )
@@ -187,7 +187,7 @@ function ENT:Think()
 		end
 		local distance, radio_pos = gspeak:get_distances(self)
 		local distance_max = self:GetRange()
-		if distance < distance_max and ( gspeak:player_alive(LocalPlayer()) or gspeak.settings.dead_alive ) then
+		if distance < distance_max and ( gspeak:IsPlayerAlive(LocalPlayer()) or gspeak.settings.deadHearsAlive ) then
 			self:AddHearables(radio_pos, gspeak:calcVolume( distance, distance_max ))
 		end
 	end

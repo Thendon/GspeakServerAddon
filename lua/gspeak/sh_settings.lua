@@ -3,15 +3,15 @@
 function gspeak:UpdateQuery(value, name)
 	local q = sql.Query( "SELECT * FROM gspeak_settings WHERE name = '"..name.."'" )
 	if q == false then
-		gspeak:ConsoleError("Database UPDATE Error: "..sql.LastError());
+		gspeak.ConsoleError("Database UPDATE Error: "..sql.LastError());
 		return false
 	elseif q == nil then
-		gspeak:ConsoleSuccess( "New variable ( "..name.." ) found")
+		gspeak.ConsoleSuccess( "New variable ( "..name.." ) found")
 		gspeak:InsertQuery(value, name)
 	end
 
 	if sql.Query( "UPDATE gspeak_settings SET value = "..gspeak:ValueToDB( value ).." WHERE name = '"..name.."'" ) == false then
-		gspeak:ConsoleError( "Database UPDATE Error: "..sql.LastError())
+		gspeak.ConsoleError( "Database UPDATE Error: "..sql.LastError())
 		return false
 	end
 	return true
@@ -19,7 +19,7 @@ end
 
 function gspeak:InsertQuery(value, name)
 	if sql.Query( "INSERT INTO gspeak_settings ( name, value ) VALUES ( '" ..name.. "', " ..gspeak:ValueToDB( value ).. ")" ) == false then
-		gspeak:ConsoleError("Database INSERT Error: "..sql.LastError());
+		gspeak.ConsoleError("Database INSERT Error: "..sql.LastError());
 		return false
 	end
 	return true
@@ -27,13 +27,13 @@ end
 
 function gspeak:ChangeSetting(setting, table, name, value, i, original_table)
 	i = i or 1
-	if table[setting[i]] == nil then gspeak:ConsoleError("Setting "..name.." not found") return end
+	if table[setting[i]] == nil then gspeak.ConsoleError("Setting "..name.." not found") return end
 	original_table = original_table or table
 	if i < #setting then gspeak:ChangeSetting(setting, table[setting[i]], name, value, i+1, original_table) return end
 	table[setting[i]] = value
 
 	if !gspeak:UpdateQuery(original_table[setting[1]], setting[1]) then return end
-	gspeak:ConsoleSuccess("Changed "..name.." to "..tostring(value))
+	gspeak.ConsoleSuccess("Changed "..name.." to "..tostring(value))
 
 	if SERVER then
 		net.Start("gspeak_server_settings")
@@ -94,8 +94,8 @@ end
 function gspeak:LoadSettings( table )
 	if !sql.TableExists("gspeak_settings") then
 		sql.Query( "CREATE TABLE gspeak_settings ( name VARCHAR(255) PRIMARY KEY, value TEXT )" )
-	  	if !sql.TableExists("gspeak_settings") then gspeak:ConsoleError( "Database Error: "..sql.LastError()) return end
-		gspeak:ConsoleSuccess( "Table created successfully")
+	  	if !sql.TableExists("gspeak_settings") then gspeak.ConsoleError( "Database Error: "..sql.LastError()) return end
+		gspeak.ConsoleSuccess( "Table created successfully")
 		if !table then return end
 		gspeak:QueryTable( table, function(name, value)
 			gspeak:InsertQuery( value, name)
@@ -104,7 +104,7 @@ function gspeak:LoadSettings( table )
 	end
 
 	result = sql.Query( "SELECT * FROM gspeak_settings" )
-	if result == false then gspeak:ConsoleError( "Database Error: "..sql.LastError()) return end
+	if result == false then gspeak.ConsoleError( "Database Error: "..sql.LastError()) return end
 	for name, value in pairs( table ) do
 		local found = false
 		if result then for k, v in pairs(result) do if name == v.name then found = true end end end
@@ -115,5 +115,5 @@ function gspeak:LoadSettings( table )
 	end
 	if !result then return end
 	gspeak:SaveResult(result, table)
-	gspeak:ConsoleSuccess( "Table loaded successfully")
+	gspeak.ConsoleSuccess( "Table loaded successfully")
 end

@@ -26,9 +26,9 @@ hook.Add("Think", "gspeak_connect", function()
 	gspeak.io:CheckConnection()
 	if !gspeak.cl.TS.connected then return end
 
-	local ts_id = gspeak.io:GetTsId()
-	if ts_id != LocalPlayer().ts_id and connectionCooldown < now then
-		gspeak:set_tsid( ts_id )
+	local tsId = gspeak.io:GetTsId()
+	if tsId != LocalPlayer():GetTsId() and connectionCooldown < now then
+		gspeak:set_tsid( tsId )
 		connectionCooldown = now + 10
 	end
 
@@ -36,19 +36,27 @@ hook.Add("Think", "gspeak_connect", function()
 
 	if !gspeak.cl.TS.inChannel then return end
 
-	gspeak.io:Tick()
+	for i, ply in ipairs(player.GetAll()) do
+		local tsId = ply:GetTsId()
+		if (tsId == 0) then continue end
+		local success, volume, talking = gspeak.io:GetHearableData(tsId)
+		if (!success) then continue end
+		ply.volume = volume
+		ply:SetTalking(talking)
+	end
+
+	-- gspeak.io:Tick()
 end)
 
---pretty stupid solution, maybe not necessary
-hook.Add("Think", "gspeak_update_playerlist", function()
-	if !gspeak.cl.TS.inChannel then return end
+gameevent.Listen( "client_disconnect" )
+hook.Add( "client_disconnect", "gpseak_disconnect", function( data )
+	local message = data.message	// The reason of the 
 
-	local now = CurTime()
-    if updatePlayerCooldown > now then return end
+	// Called when the client is disconnecting from the server.
+	gspeak.ConsoleLog("disconnect hook " .. message)
 
-	gspeak:UpdatePlayers()
-	updatePlayerCooldown = now + 10
-end)
+	gspeak.io:Disconnect()
+end )
 
 function gspeak:set_tsid( ts_id )
 	-- if ts_id == 0 then
@@ -77,20 +85,36 @@ end
 -- function gspeak:request_ts_id( ply )
 -- 	net.Start("request_ts_id")
 -- 		net.WriteEntity( ply )
--- 		--net.WriteInt( ts_id, 32 )
 -- 	net.SendToServer()
 -- end
 
-net.Receive("ts_ply_id", function( len )
-	local ply = net.ReadEntity()
-	--if (ply.ts_id) then gspeak.io:RemovePlayer(ply:EntIndex(), false, -1) end
-	ply.ts_id = net.ReadInt( 32 )
-end)
+-- net.Receive("ts_ply_id", function( len )
+-- 	local ply = net.ReadEntity()
+-- 	--TODO should be reimplemented
+-- 	--if (ply.ts_id) then gspeak.io:RemovePlayer(ply:EntIndex(), false, -1) end
+-- 	ply.ts_id = net.ReadInt( 32 )
+-- end)
 
-net.Receive("gspeak_ply_disc", function ( len )
-	index = net.ReadInt(32)
-	if gspeak.cl.TS.connected then gspeak.io:RemovePlayer(index, false, -1) end
-end)
+-- net.Receive("gspeak_ply_disc", function ( len )
+-- 	index = net.ReadInt(32)
+-- 	if gspeak.cl.TS.connected then gspeak.io:RemovePlayer(index, false, -1) end
+-- end)
+
+-- hook.Add("EntityRemoved", "gspeak_entity_removed", function( ent )
+-- 	if !gspeak.cl.TS.connected then return end
+
+-- 	--if !gspeak:IsGspeakEntity() then return end
+-- 	if !ent:IsPlayer() then return end
+
+-- 	gspeak.io:RemovePlayer(ent:EntIndex(), false, -1)
+-- end)
+
+-- hook.Add("OnEntityCreated", "gspeak_entity_created", function( ent ))
+-- 	--if !gspeak:IsGspeakEntity() then return end
+-- 	if !ent:IsPlayer() then return end
+
+-- 	request_ts_id( ent )
+-- end)
 
 net.Receive("gspeak_failed_broadcast", function(len)
 	local ply = net.ReadEntity()

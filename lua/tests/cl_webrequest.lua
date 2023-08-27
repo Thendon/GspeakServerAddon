@@ -1,7 +1,7 @@
 
 
 function gspeak:HttpTest()
-	gspeak:ConsolePrint("[HttpTest] start")
+	gspeak.ConsolePrint("[HttpTest] start")
 	http.Post( "http://5.9.67.102/", { p = "Gmod", a = "Test" },
 
 		-- onSuccess function

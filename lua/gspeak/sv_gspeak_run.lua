@@ -10,7 +10,7 @@ local function AddCSLuaDir(dir)
 		if fileSide != "sh_" and fileSide != "cl_" then continue end
 
 		AddCSLuaFile(dir..file)
-		gspeak:ConsoleLog("add file "..dir..file)
+		gspeak.ConsoleLog("add file "..dir..file)
     end
     
     for k, subdir in ipairs(dirs) do
@@ -22,13 +22,13 @@ end
 AddCSLuaDir("gspeak")
 
 util.AddNetworkString( "ts_talking" )
-util.AddNetworkString( "ts_ply_talking" )
+--util.AddNetworkString( "ts_ply_talking" )
 util.AddNetworkString( "ts_talkmode" )
-util.AddNetworkString( "ts_ply_talkmode" )
+--util.AddNetworkString( "ts_ply_talkmode" )
 util.AddNetworkString( "ts_id" )
-util.AddNetworkString( "ts_ply_id" )
+--util.AddNetworkString( "ts_ply_id" )
 util.AddNetworkString( "gspeak_server_settings" )
-util.AddNetworkString( "gspeak_ply_disc" )
+--util.AddNetworkString( "gspeak_ply_disc" )
 util.AddNetworkString( "gspeak_failed" )
 util.AddNetworkString( "gspeak_failed_broadcast" )
 util.AddNetworkString( "gspeak_init" )
@@ -42,7 +42,10 @@ util.AddNetworkString( "radio_page_req" )
 util.AddNetworkString( "radio_page_set" )
 util.AddNetworkString( "radio_send_settings" )
 util.AddNetworkString( "radio_init" )
+util.AddNetworkString( "player_hears_player" )
 --util.AddNetworkString( "request_ts_id" )
+
+include("gspeak/sv_player.lua")
 
 //************************************************************//
 //						FASTDL SETTINGS
@@ -109,14 +112,6 @@ resource.AddWorkshop( 533494097 )
 //								FUNCTIONS
 //************************************************************//
 
-function gspeak:broadcast_talkmode( ply )
-	net.Start("ts_ply_talkmode")
-		net.WriteEntity( ply )
-		net.WriteInt( ply.talkmode, 32 )
-		--net.WriteInt( gspeak:get_talkmode_range(ply.talkmode), 32 )
-	net.Broadcast()
-end
-
 -- function gspeak:updateName( ply, name )
 -- 	net.Start("gspeak_name_change")
 -- 		net.WriteString( name )
@@ -147,9 +142,9 @@ gspeak:LoadSettings( gspeak.settings )
 local files = file.Find("sound/" .. gspeak.sounds.path.sv .. "*", "GAME")
 for k, v in pairs(files) do
 	if v == "radio_booting_s" or v == "radio_turnoff_s" or v == "radio_click" or v == "radio_release" then
-		gspeak:add_sound(gspeak.sounds.path.sv .. v, CHAN_ITEM, 1.0, 20)
+		gspeak:AddSound(gspeak.sounds.path.sv .. v, CHAN_ITEM, 1.0, 20)
 	else
-		gspeak:add_sound(gspeak.sounds.path.sv .. v)
+		gspeak:AddSound(gspeak.sounds.path.sv .. v)
 	end
 	gspeak:add_file(gspeak.sounds.path.sv, v)
 end
@@ -212,15 +207,15 @@ net.Receive("radio_init", function( len, ply )
 	radio:SendSettings(owner)
 end)
 
-net.Receive("ts_talking", function( len, ply )
-	local trigger = net.ReadBool()
-	ply.talking = trigger
+-- net.Receive("ts_talking", function( len, ply )
+-- 	local trigger = net.ReadBool()
+-- 	ply.talking = trigger
 
-	net.Start("ts_ply_talking")
-		net.WriteEntity( ply )
-		net.WriteBool( trigger )
-	net.Broadcast()
-end)
+-- 	net.Start("ts_ply_talking")
+-- 		net.WriteEntity( ply )
+-- 		net.WriteBool( trigger )
+-- 	net.Broadcast()
+-- end)
 
 -- net.Receive("request_ts_id", function( len, ply )
 -- 	local other = net.ReadEntity()
@@ -234,20 +229,34 @@ end)
 -- 	net.Send( ply )
 -- end)
 
+local function setPlayerTsId(ply, tsId)
+	gspeak.ConsoleLog("assign " .. tostring(ply) .. " teamspeak clientId " .. tostring(tsId))
+	ply:SetNW2Int("TsId", tsId)
+	--ply.ts_id = tsId
+
+	-- net.Start("ts_ply_id")
+	-- 	net.WriteEntity( ply )
+	-- 	net.WriteInt( ply.ts_id, 32 )
+	-- net.Broadcast()
+end
+
+local function setPlayerTalkmode(ply, talkmode)
+	ply:SetNW2Int("Talkmode", talkmode)
+	-- ply.talkmode = talkmode
+	
+	-- net.Start("ts_ply_talkmode")
+	-- 	net.WriteEntity( ply )
+	-- 	net.WriteInt( ply.talkmode, 32 )
+	-- 	--net.WriteInt( gspeak:GetTalkmodeRange(ply.talkmode), 32 )
+	-- net.Broadcast()
+end
+
 net.Receive("ts_id", function( len, ply )
-	local ts_id = net.ReadInt( 32 )
-
-	net.Start("ts_ply_id")
-		net.WriteEntity( ply )
-		net.WriteInt( ts_id, 32 )
-	net.Broadcast()
-
-	ply.ts_id = ts_id
+	setPlayerTsId(ply, net.ReadInt( 32 ))
 end)
 
 net.Receive("ts_talkmode", function ( len, ply )
-	ply.talkmode = net.ReadInt( 32 )
-	gspeak:broadcast_talkmode(ply)
+	setPlayerTalkmode(ply, net.ReadInt( 32 ))
 end)
 
 net.Receive("gspeak_failed", function( len, ply )
@@ -257,32 +266,32 @@ net.Receive("gspeak_failed", function( len, ply )
 end)
 
 net.Receive("gspeak_request_init", function( len, ply )
-	local all_ply_table = {}
+	--local all_ply_table = {}
 	--local all_radio_table = {}
-	for k, v in pairs(ents.GetAll()) do
-		if v == ply then continue end
+	-- for k, v in pairs(ents.GetAll()) do
+	-- 	if v == ply then continue end
 
-		if v:IsPlayer() then
-			local ply_table = {}
-			table.insert(ply_table, 1, v)
-			table.insert(ply_table, 2, v.talkmode)
-			table.insert(ply_table, 3, v.ts_id)
-			table.insert(ply_table, 4, v.talking or false)
-			table.insert(all_ply_table, ply_table)
-		end
-		--radio initialization completely handled by Entity() class
-		-- elseif v:IsRadio() then
-		-- 	local radio_table = {}
-		-- 	table.insert(radio_table, 1, v.online)
-		-- 	table.insert(radio_table, 2, v.freq)
-		-- 	table.insert(radio_table, 3, v.sending)
-		-- 	--table.insert(radio_table, 4, v.menu.page or 0)
-		-- 	table.insert(all_radio_table, radio_table)
-		-- end
-	end
+	-- 	if v:IsPlayer() then
+	-- 		local ply_table = {}
+	-- 		table.insert(ply_table, 1, v)
+	-- 		table.insert(ply_table, 2, v.talkmode)
+	-- 		table.insert(ply_table, 3, v.ts_id)
+	-- 		table.insert(ply_table, 4, v.talking or false)
+	-- 		table.insert(all_ply_table, ply_table)
+	-- 	end
+	-- 	--radio initialization completely handled by Entity() class
+	-- 	-- elseif v:IsRadio() then
+	-- 	-- 	local radio_table = {}
+	-- 	-- 	table.insert(radio_table, 1, v.online)
+	-- 	-- 	table.insert(radio_table, 2, v.freq)
+	-- 	-- 	table.insert(radio_table, 3, v.sending)
+	-- 	-- 	--table.insert(radio_table, 4, v.menu.page or 0)
+	-- 	-- 	table.insert(all_radio_table, radio_table)
+	-- 	-- end
+	-- end
 	
 	net.Start( "gspeak_init" )
-		net.WriteTable(all_ply_table)
+		--net.WriteTable(all_ply_table)
 		--net.WriteTable(all_radio_table)
 		net.WriteTable(gspeak.settings)
 	net.Send( ply )
@@ -312,8 +321,22 @@ end)
 //								HOOKS
 //************************************************************//
 
-hook.Add( "PlayerDisconnected", "gspeak_disconnect", function( ply )
-	net.Start("gspeak_ply_disc")
-		net.WriteInt( ply:EntIndex(), 32 )
-	net.Broadcast()
+-- hook.Add( "PlayerDisconnected", "gspeak_disconnect", function( ply )
+-- 	net.Start("gspeak_ply_disc")
+-- 		net.WriteInt( ply:EntIndex(), 32 )
+-- 	net.Broadcast()
+-- end)
+
+concommand.Add("gspeak_assign_tsid", function(ply, cmd, args, argStr)
+	if (ply != nil && ply:IsValid() && !ply:IsSuperAdmin()) then return end
+
+	local playerName = args[1]
+	local tsId = args[2]
+
+	for i, ply in ipairs(player.GetBots()) do
+		if (ply:GetName() != playerName) then continue end
+
+		setPlayerTalkmode(ply, 2)
+		setPlayerTsId(ply, tsId)
+	end
 end)

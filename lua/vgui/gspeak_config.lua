@@ -123,7 +123,7 @@ local function DrawClientConfig(DermaActive, xPos, yPos, diff)
 		DLabel:SetSize( 300, 25 )
 		DLabel:SetText( "(default - "..GetKeyString(gspeak.settings.radio.def_key)..")" )
 	end
-	if gspeak.settings.dead_chat then
+	if gspeak.settings.deadHearsDead then
 		yPos = yPos + 50
 		local DLabel = vgui.Create( "DLabel", DermaActive )
 		DLabel:SetPos( xPos, yPos )
@@ -131,9 +131,9 @@ local function DrawClientConfig(DermaActive, xPos, yPos, diff)
 		DLabel:SetText( "Mute dead/spectator:" )
 		local DCheckBox = vgui.Create( "DCheckBox", DermaActive )
 		DCheckBox:SetPos( xPos+125, yPos )
-		DCheckBox:SetValue( gspeak.cl.dead_muted )
+		DCheckBox:SetValue( gspeak.cl.deadMuted )
 		DCheckBox.OnChange = function( panel )
-			gspeak.cl.dead_muted = panel:GetChecked()
+			gspeak.cl.deadMuted = panel:GetChecked()
 		end
 	end
 end
@@ -417,7 +417,7 @@ local function DrawRangeConfig(DermaActive, xPos, yPos, diff)
 	DButton:SetSize( 75, 25 )
 	DButton.DoClick = function( Panel )
 		local ID = AppList:GetSelectedLine()
-		if !ID then gspeak:chat_text("you have to select an Item!", true) return end
+		if !ID then gspeak:ChatError("you have to select an Item!") return end
 		EditMode( Panel, ID )
 	end
 	local DButton = vgui.Create( "DButton", DermaActive )
@@ -426,7 +426,7 @@ local function DrawRangeConfig(DermaActive, xPos, yPos, diff)
 	DButton:SetSize( 30, 25 )
 	DButton.DoClick = function()
 		local ID = AppList:GetSelectedLine()
-		if !ID then gspeak:chat_text("you have to select an Item!", true) return end
+		if !ID then gspeak:ChatError("you have to select an Item!") return end
 
 		local temp_mode = gspeak.settings.distances.modes[ID]
 		local switch_mode = gspeak.settings.distances.modes[ID-1]
@@ -450,7 +450,7 @@ local function DrawRangeConfig(DermaActive, xPos, yPos, diff)
 	DButton:SetSize( 30, 25 )
 	DButton.DoClick = function()
 		local ID = AppList:GetSelectedLine()
-		if !ID then gspeak:chat_text("you have to select an Item!", true) return end
+		if !ID then gspeak:ChatError("you have to select an Item!") return end
 
 		local temp_mode = gspeak.settings.distances.modes[ID]
 		local switch_mode = gspeak.settings.distances.modes[ID+1]
@@ -474,7 +474,7 @@ local function DrawRangeConfig(DermaActive, xPos, yPos, diff)
 	DButton:SetSize( 75, 25 )
 	DButton.DoClick = function()
 		local ID = AppList:GetSelectedLine()
-		if !ID then gspeak:chat_text("you have to select an Item!", true) return end
+		if !ID then gspeak:ChatError("you have to select an Item!") return end
 
 		table.remove( gspeak.settings.distances.modes, ID)
 		AppList:Refresh( true )
@@ -655,6 +655,22 @@ end
 
 local function DrawTeamspeakConfig(DermaActive, xPos, yPos, diff)
 	diff = 40
+	
+	--yPos = yPos + diff
+	local DLabel = vgui.Create( "DLabel", DermaActive )
+	DLabel:SetPos( xPos, yPos )
+	DLabel:SetSize( 300, 25 )
+	DLabel:SetText( "Channel Name (optional)" )
+	local DTextEntry = vgui.Create( "DTextEntry", DermaActive )
+	DTextEntry:SetName( "channelName" )
+	DTextEntry:SetPos( xPos+130, yPos )
+	DTextEntry:SetSize( 150, 25 )
+	DTextEntry:SetText( gspeak.settings.channelName )
+	DTextEntry.OnEnter = gui_change
+	local DLabel = vgui.Create( "DLabel", DermaActive )
+	DLabel:SetPos( xPos+300, yPos )
+	DLabel:SetSize( 300, 25 )
+	DLabel:SetText( "(if empty Plugin will auto search)" )
 
 	yPos = yPos + diff
 	local DLabel = vgui.Create( "DLabel", DermaActive )
@@ -671,7 +687,7 @@ local function DrawTeamspeakConfig(DermaActive, xPos, yPos, diff)
 	DLabel:SetPos( xPos+300, yPos )
 	DLabel:SetSize( 300, 25 )
 	DLabel:SetText( "(less than 32 characters)" )
-
+	
 	yPos = yPos + diff
 	local DLabel = vgui.Create( "DLabel", DermaActive )
 	DLabel:SetPos( xPos, yPos )
@@ -732,9 +748,9 @@ local function DrawTeamspeakConfig(DermaActive, xPos, yPos, diff)
 	DLabel:SetSize( 125, 25 )
 	DLabel:SetText( "Dead/Spectator Voicechat" )
 	local DCheckBox = vgui.Create( "DCheckBox", DermaActive )
-	DCheckBox:SetName( "dead_chat" )
+	DCheckBox:SetName( "deadHearsDead" )
 	DCheckBox:SetPos( xPos+125, yPos+5 )
-	DCheckBox:SetValue( gspeak.settings.dead_chat )
+	DCheckBox:SetValue( gspeak.settings.deadHearsDead )
 	DCheckBox.OnChange = gui_change
 
 	local DLabel = vgui.Create( "DLabel", DermaActive )
@@ -742,9 +758,9 @@ local function DrawTeamspeakConfig(DermaActive, xPos, yPos, diff)
 	DLabel:SetSize( 125, 25 )
 	DLabel:SetText( "Should dead hear living?" )
 	local DCheckBox = vgui.Create( "DCheckBox", DermaActive )
-	DCheckBox:SetName( "dead_alive" )
+	DCheckBox:SetName( "deadHearsAlive" )
 	DCheckBox:SetPos( xPos+300, yPos+5 )
-	DCheckBox:SetValue( gspeak.settings.dead_alive )
+	DCheckBox:SetValue( gspeak.settings.deadHearsAlive )
 	DCheckBox.OnChange = gui_change
 
 	yPos = yPos + diff

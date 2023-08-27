@@ -7,7 +7,7 @@ local writeMaxCount = 500
 local writeCount = 0
 
 function gspeak:WriteBytes(outStream)
-	gspeak:ConsolePrint("[FileTest] write " .. (writeSize) .. " bytes")
+	gspeak.ConsolePrint("[FileTest] write " .. (writeSize) .. " bytes")
 	for	i = 0, writeSize / 4 do
 		outStream:WriteByte(1);
 		outStream:WriteByte(0);
@@ -24,13 +24,13 @@ function gspeak:OpenOutStream()
 		file.Write("gspeak/io.out.dat")
 	end
 
-	gspeak:ConsolePrint("[FileTest] start ")
+	gspeak.ConsolePrint("[FileTest] start ")
 	return file.Open("gspeak/io.out.dat", "a", "DATA")
 end
 
 function gspeak:CloseOutStream(outStream)
 	outStream:Close() 
-	gspeak:ConsolePrint("[FileTest] done ")
+	gspeak.ConsolePrint("[FileTest] done ")
 end
 
 hook.Add("Think", "FileTest", function()

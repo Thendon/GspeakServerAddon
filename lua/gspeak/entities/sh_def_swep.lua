@@ -111,9 +111,9 @@ function SWEP:PostDrawViewModel(vm, weapon, ply)
 				if gspeak:radio_valid(Entity(v)) then
 					local speaker = Entity(v):GetSpeaker()
 					if gspeak:player_valid(speaker) then
-						draw.DrawText( string.sub(gspeak:GetName( Entity(v):GetSpeaker() ),1,14), "BudgetLabel", x, y, white, TEXT_ALIGN_LEFT )
+						draw.DrawText( string.sub(Entity(v):GetSpeaker():GetTeamspeakName(),1,14), "BudgetLabel", x, y, white, TEXT_ALIGN_LEFT )
 						local status = "idl"
-						if Entity(v):GetSpeaker().talking then status = "inc" end
+						if Entity(v):GetSpeaker():IsTalking() then status = "inc" end
 						draw.DrawText( "| "..status, "BudgetLabel", x+140, y, white, TEXT_ALIGN_RIGHT )
 						y = y + 10
 					end
