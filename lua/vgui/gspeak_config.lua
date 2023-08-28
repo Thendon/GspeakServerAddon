@@ -135,6 +135,17 @@ local function DrawClientConfig(DermaActive, xPos, yPos, diff)
 		DCheckBox.OnChange = function( panel )
 			gspeak.cl.deadMuted = panel:GetChecked()
 		end
+		yPos = yPos + 50
+		local DSlider = vgui.Create( "DNumSlider", DermaActive )
+		DSlider:SetName( "deadVolume" )
+		DSlider:SetPos( xPos, yPos )
+		DSlider:SetSize( 300, 25 )
+		DSlider:SetText( "Volume of dead players" )
+		DSlider:SetMin( 0.0 )
+		DSlider:SetMax( 1.0 )
+		DSlider:SetDecimals( 3 )
+		DSlider:SetValue( gspeak.cl.settings.deadVolume )
+		DSlider.Think = gui_think_slider
 	end
 end
 

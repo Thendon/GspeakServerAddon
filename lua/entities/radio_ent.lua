@@ -1,5 +1,7 @@
 AddCSLuaFile()
 
+local white = Color(255,255,255,255)
+
 ENT.Base = "base_entity"
 ENT.Type = "anim"
 ENT.Spawnable = false
@@ -19,7 +21,6 @@ function ENT:Initialize()
 		gspeak:NoDoubleEntry( self, gspeak.cl.radios )
 		net.Start("radio_init")
 			net.WriteEntity( self )
-			net.WriteEntity( LocalPlayer() )
 		eToServer()
 	end
 end
@@ -44,7 +45,6 @@ function ENT:Draw()
 	if gspeak.viewranges then gspeak:draw_range(vm_pos, gspeak.settings.distances.radio, gspeak.settings.distances.heightclamp, gspeak.cl.color.blue) end
 
 	local offset = ang:Forward() * 0.87 + ang:Right() * 1.46 + ang:Up() * (-3)
-	local white = Color(255,255,255,255)
 	ang:RotateAroundAxis(ang:Forward(), 90)
 	ang:RotateAroundAxis(ang:Right(), -90)
 	ang:RotateAroundAxis(ang:Up(), 0)
@@ -67,16 +67,14 @@ function ENT:Draw()
 				y = y + 7
 				for k, v in next, self.connected_radios do
 					if k == 7 then break end
-					if gspeak:radio_valid(Entity(v)) then
-						local speaker = Entity(v):GetSpeaker()
-						if gspeak:player_valid(speaker) then
-							draw.DrawText( string.sub(speaker:GetTeamspeakName(),1,14), "BudgetLabel", x, y, white, TEXT_ALIGN_LEFT )
-							local status = "idl"
-							if speaker:IsTalking() then status = "inc" end
-							draw.DrawText( "| "..status, "BudgetLabel", x+140, y, white, TEXT_ALIGN_RIGHT )
-							y = y + 10
-						end
-					end
+					if !gspeak:radio_valid(Entity(v)) then continue end
+					local speaker = Entity(v):GetSpeaker()
+					if !gspeak:player_valid(speaker) then continue end
+					draw.DrawText( string.sub(speaker:GetTeamspeakName(),1,14), "BudgetLabel", x, y, white, TEXT_ALIGN_LEFT )
+					local status = "idl"
+					if speaker:IsTalking() then status = "inc" end
+					draw.DrawText( "| "..status, "BudgetLabel", x+140, y, white, TEXT_ALIGN_RIGHT )
+					y = y + 10
 				end
 			end
 		end

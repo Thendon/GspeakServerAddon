@@ -211,14 +211,18 @@ local function handleEntity(ent)
 		--TODO (currently always true)
 	end
 
+	--handle dead players ...
 	if (ent:IsPlayer() && !gspeak:IsPlayerAlive(ent)) then
+		-- ... when dead
 		if (gspeak.settings.deadHearsDead && !gspeak.cl.deadMuted && !gspeak:IsPlayerAlive(LocalPlayer())) then
 			return true, gspeak.cl.settings.deadVolume, getCurrentDeadCirclePosition(), gspeak.voiceEffects.None
+		-- ... when alive
 		else
 			return false
 		end
 	end
 
+	--handle alive players when dead
 	if (!gspeak.settings.deadHearsAlive && !gspeak:IsPlayerAlive(LocalPlayer())) then 
 		return false 
 	end

@@ -147,7 +147,7 @@ net.Receive("gspeak_init", function( len )
 	-- 	end
 	-- end
 
-	if GAMEMODE_NAME == "terrortown" then gspeak.terrortown = true end
+	--if GAMEMODE_NAME == "terrortown" then gspeak.terrortown = true end
 
 	--local ply_var_table = net.ReadTable()
 	--local radio_var_table = net.ReadTable()

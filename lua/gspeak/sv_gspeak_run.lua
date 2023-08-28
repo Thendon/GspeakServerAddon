@@ -203,8 +203,7 @@ end)
 net.Receive("radio_init", function( len, ply )
 	local radio = net.ReadEntity()
 	if !gspeak:radio_valid(radio) then return end
-	local owner = net.ReadEntity()
-	radio:SendSettings(owner)
+	radio:SendSettings(ply)
 end)
 
 -- net.Receive("ts_talking", function( len, ply )

@@ -49,7 +49,7 @@ function gspeak:IsPlayerAlive(ply)
 
 	if !ply:Alive() then return false end
 
-	if gspeak.terrortown then
+	if GAMEMODE_NAME == "terrortown" then
 		if ( ply:IsSpec() or GetRoundState() == ROUND_POST ) then return false end
 	end
 
