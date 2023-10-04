@@ -1,5 +1,6 @@
 
 AddCSLuaFile()
+
 gspeak = gspeak or {}
 gspeak.version = 3000
 
@@ -9,7 +10,7 @@ gspeak.version = 3000
 //************************************************************//
 
 --Setting Default variables
-gspeak.settings = {
+gspeak.default_settings = {
 	distances = {
 		modes = {
 			{	name = "Whisper", range = 150, icon = "gspeak/gspeak_whisper.png", icon_ui = "gspeak/gspeak_whisper_ui.png" },
@@ -42,6 +43,16 @@ gspeak.settings = {
 		use_key = true,
 		def_key = KEY_CAPSLOCK
 	},
+	water = {
+		scale = 100,
+		smooth = 0.999,
+		boost = 1.0
+	},
+	wall = {
+		scale = 50,
+		smooth = 0.5,
+		boost = 1.0
+	},
 	password = "",
 	channelName = "",
 	overrideV = false,
@@ -55,6 +66,8 @@ gspeak.settings = {
 	updateName = false,
 	def_deadVolume = 0.9
 }
+
+gspeak.settings = table.Copy(gspeak.default_settings)
 
 gspeak.sounds = {
 	names = {},

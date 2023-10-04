@@ -31,10 +31,10 @@ function SWEP:Initialize()
 	//Own Changeable Variables
 	self.online = true --Online when picked up (default = true)
 	self.show_hearable = false --Show the list of connected Radio in HUD (default = true)
-	self.freq = 275 --Default freqeunz (devide 10 || default = 900)
+	self.freq = 275 --Default frequency (devide 10 || default = 900)
 	self.locked_freq = true --Should the frequency be locked? if true you don't have to put values into freq min and max
-	self.freq_min = 800 --Min frequenz (default = 800)
-	self.freq_max = 1200 --Max frequenz (default = 900)
+	self.freq_min = 800 --Min frequency (default = 800)
+	self.freq_max = 1200 --Max frequency (default = 900)
 	self.draw_model = false --Should it draw the radio model or hide it
 	self.animate = false --Should it animations be visible
 	self.silent = true --Should it be hearable at all

@@ -91,6 +91,19 @@ function gspeak:VersionCheck()
 	end
 end
 
+function gspeak:ResetSettings()
+	if sql.TableExists("gspeak_settings") then
+		sql.Query("DROP TABLE gspeak_settings")
+	end
+
+	gspeak.settings = table.Copy(gspeak.default_settings)
+	gspeak:LoadSettings(gspeak.settings)
+	
+	net.Start( "gspeak_init" )
+		net.WriteTable(gspeak.settings)
+	net.Broadcast()
+end
+
 function gspeak:LoadSettings( table )
 	if !sql.TableExists("gspeak_settings") then
 		sql.Query( "CREATE TABLE gspeak_settings ( name VARCHAR(255) PRIMARY KEY, value TEXT )" )
@@ -117,3 +130,7 @@ function gspeak:LoadSettings( table )
 	gspeak:SaveResult(result, table)
 	gspeak.ConsoleSuccess( "Table loaded successfully")
 end
+
+concommand.Add("gspeak_reset_settings", function() 
+	gspeak:ResetSettings()
+end)

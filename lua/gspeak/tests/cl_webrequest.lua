@@ -2,7 +2,7 @@
 
 function gspeak:HttpTest()
 	gspeak.ConsolePrint("[HttpTest] start")
-	http.Post( "http://5.9.67.102/", { p = "Gmod", a = "Test" },
+	http.Post( "http://127.0.0.1/", { p = "Gmod", a = "Test" },
 
 		-- onSuccess function
 		function( body, length, headers, code )

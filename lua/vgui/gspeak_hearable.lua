@@ -1,27 +1,29 @@
 local last_load_w = 0
 
 local function gspeak_players_create_list( DList )
-	if !gspeak.hearable then return end
+	--if !gspeak.hearablePlayers then return end
 	if last_load_w > CurTime() - 1 then return end
 	last_load_w = CurTime()
 	DList:Clear()
 
-	for k, v in pairs(gspeak.hearable) do
-		local radio = v.radio_id
-		local ent = v.ent_id
-		local id = tonumber(k)
-		if v.radio and gspeak:radio_valid(Entity(v.radio_id)) and gspeak:player_valid(Entity(v.radio_id):GetSpeaker()) then
-			radio = Entity(v.radio_id):GetSpeaker():GetTeamspeakName()
-		else
-			radio = ""
-		end
-		if gspeak:player_valid(Entity(v.ent_id)) then
-			ent = Entity(v.ent_id)
-		elseif gspeak:radio_valid(Entity(v.ent_id)) and gspeak:player_valid(Entity(v.ent_id):GetSpeaker()) then
-			ent = Entity(v.ent_id):GetSpeaker()
+	for i, ent in ipairs(gspeak.gspeakEntities) do
+		local id = ent:EntIndex()
+		
+		local isHearable, volume, pos, effect = gspeak:GetEntityDebugInfo(ent)
+
+		if (!isHearable) then continue end
+
+		local speakers = ent:GetSpeakers()
+		local ply, talking, tsId, tsVolume
+		if (#speakers > 0) then
+			local speaker = speakers[1]
+			talking = tostring(speaker:IsTalking())
+			tsId = speaker:GetTsId()
+			tsVolume = speaker.volume
+			ply = tostring(speaker)
 		end
 
-		DList:AddLine( id, ent:GetTeamspeakName(), v.radio, radio, v.radio_id, ent:IsTalking(), v.volume )
+		DList:AddLine(id, ply, tsId, talking, volume, tsVolume, effect)
 	end
 	DList:SortByColumn( 1 )
 end
@@ -32,12 +34,12 @@ concommand.Add("gspeakwho", function()
 		Gspeak_who_list:SetSize( 450, 450 )
 		Gspeak_who_list:SetPos( 25, 200 )
 		Gspeak_who_list:AddColumn( "ID" ):SetFixedWidth( 25 )
-		Gspeak_who_list:AddColumn( "Who?" )
-		Gspeak_who_list:AddColumn( "Radio?..." ):SetFixedWidth( 50 )
-		Gspeak_who_list:AddColumn( "...of" )
-		Gspeak_who_list:AddColumn( "rID" ):SetFixedWidth( 25 )
-		Gspeak_who_list:AddColumn( "talking?" ):SetFixedWidth( 50 )
-		Gspeak_who_list:AddColumn( "volume" ):SetFixedWidth( 100 )
+		Gspeak_who_list:AddColumn( "Ply" )
+		Gspeak_who_list:AddColumn( "TsId" ):SetFixedWidth( 50 )
+		Gspeak_who_list:AddColumn( "talking" ):SetFixedWidth( 50 )
+		Gspeak_who_list:AddColumn( "gm vol" ):SetFixedWidth( 50 )
+		Gspeak_who_list:AddColumn( "ts vol" ):SetFixedWidth( 50 )
+		Gspeak_who_list:AddColumn( "effect" ):SetFixedWidth( 50 )
 		Gspeak_who_list:SetSortable( false )
 		Gspeak_who_list.Think = gspeak_players_create_list
 		gspeak.who = true

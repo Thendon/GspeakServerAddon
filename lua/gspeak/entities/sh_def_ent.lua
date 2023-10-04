@@ -14,6 +14,16 @@ function ENT:GetAudioSourcePosition()
 	return self:GetPos()
 end
 
+function Ent:DefaultInitialize()
+	self.Radio = true
+	self.connected_radios = {}
+	self.settings = { 
+		trigger_at_talk = false, 
+		start_com = gspeak.settings.radio_start, 
+		end_com = gspeak.settings.radio_stop 
+	}
+end
+
 function ENT:GetSpeakers()
 	local speakers = {}
 
@@ -100,7 +110,7 @@ function ENT:RemoveID( radio_id, id )
 	self:TriggerCom( false )
 
 	table.remove(self.connected_radios, id)
-	self:UpdateUI()
+	--self:UpdateUI()
 end
 
 function ENT:AddRadio( radio_id )
@@ -112,7 +122,7 @@ function ENT:AddRadio( radio_id )
 	if !self.settings.trigger_at_talk and self.trigger then self:TriggerCom( true ) end
 
 	table.insert(self.connected_radios, radio_id)
-	self:UpdateUI()
+	--self:UpdateUI()
 end
 
 function ENT:Rescan(own_freq, own_online, own_sending)

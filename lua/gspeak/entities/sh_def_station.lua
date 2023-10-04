@@ -159,10 +159,6 @@ function ENT:Draw()
 	cam.End3D2D()
 end
 
-function ENT:UpdateUI()
-	return
-end
-
 function ENT:Think()
 	if SERVER then
 		if self.sending and self.last_use != 0 and self.last_use < CurTime() - 0.1 then
@@ -193,22 +189,16 @@ function ENT:Think()
 	end
 end
 
-function ENT:DefaultInitialize()
+function ENT:StationInitialize()
+	self:DefaultInitialize()
 	//Own Locked Variables
 	self.last_use = 0
 	self.sending = false
-	self.connected_radios = {}
-	self.settings = { 
-		trigger_at_talk = false, 
-		start_com = gspeak.settings.radio_start, 
-		end_com = gspeak.settings.radio_stop 
-	}
 	
 	self.menu = {
 		page = 1, 
 		pages = 3
 	}
-	self.Radio = true
 
 	self:DrawShadow( true )
 

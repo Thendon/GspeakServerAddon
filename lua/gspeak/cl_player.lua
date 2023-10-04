@@ -1,12 +1,26 @@
 include("gspeak/sh_player.lua")
 
 local meta = FindMetaTable("Player")
-meta.hearable = false --if hearable by localplayer
-meta.volume = 0.0 --teamspeak volume
-meta.failed = false --gspeak initialization failed Todo: Refactor 
+
+function meta:InitializeGspeak()
+	self.isHearable = false --if hearable by localplayer
+	self.volume = 0.0 --teamspeak volume
+	self.failed = false --gspeak initialization failed Todo: Refactor 
+	self.isTalking = false --additional early clientside talking detection
+
+	if (self != LocalPlayer()) then
+		self:SetNW2VarProxy("TsId", function(ent, key, prev, now) 
+			if (prev == nil) then return end
+			gspeak:RemovePlayer(ent)
+		end)
+	end
+
+	self:SetNW2VarProxy("Talking", function(ent, key, prev, now)
+		ent:SetTalking(now)
+	end)
+end
 
 function meta:GetAudioSourceRange()
-	print(tostring(self) .. " " .. self:GetTalkmode() .. " " .. gspeak:GetTalkmodeRange(self:GetTalkmode()))
 	return gspeak:GetTalkmodeRange(self:GetTalkmode())
 end
 
@@ -23,7 +37,7 @@ function meta:VoiceEffect()
 end
 
 function meta:GetSpeakers()
-	return { self };
+	return { self }
 end
 
 function meta:GetTeamspeakName()
@@ -34,11 +48,6 @@ function meta:GetTeamspeakName()
 
 	if gspeak.settings.nickname then return self:Nick() end
 	return self:GetName()
-end
-
---override this only for local player which results in faster visuals for near players 
-function meta:SetTalking(talking)
-	self:SetNW2Bool("Talking", talking)
 end
 
 function gspeak:IsPlayerAlive(ply)
@@ -64,36 +73,35 @@ function gspeak:IsPlayerAlive(ply)
 	return true
 end
 
-hook.Add("EntityNetworkedVarChanged", "gspeak_playerNetworkVarChanged", function(ent, name, prev, now)
-	if (name != "TsId") then return end
-
-	gspeak.io:RemoveHearable(prev)
-	--gspeak.io:RemoveHearable(now)
-end)
-
 hook.Add("EntityRemoved", "gspeak_playerDisconnected", function(ent)
 	if (!ent:IsPlayer()) then return end
+	if (ent == LocalPlayer()) then return end
 
-	gspeak.io:RemoveHearable(ent:GetTsId())
+	gspeak:RemovePlayer(ent)
 end)
 
---stupid solution should be easier
--- function gspeak:UpdatePlayers()
--- 	for k, v in pairs(player.GetAll()) do
--- 		if !v:IsPlayer() then continue end
--- 		gspeak:NoDoubleEntry( v, gspeak.cl.players)
+hook.Add("OnEntityCreated", "gspeak_playerCreated", function (ent)
+	if (!ent:IsPlayer()) then return end
+	
+	ent:InitializeGspeak()
+end)
+
+-- local chill = 0
+-- local chillMax = 0
+
+-- hook.Add("Think", "gspeak_playerPVSthink", function()
+-- 	chill = chill + 1
+-- 	if (chill < chillMax) then return end
+-- 	chill = 0
+	
+-- 	for i, ply in ipairs(player.GetAll()) do
+-- 		local tsid = ply:GetTsId()
+-- 		local talking = ply:IsTalking()
+-- 		local talkmode = ply:GetTalkmode()
+
+-- 		--print(tostring(ply:EntIndex()) .. " " .. tostring(tsid) .. " " .. tostring(talking) .. " " .. tostring(talkmode))
 -- 	end
--- end
-
---pretty stupid solution, maybe not necessary
--- hook.Add("Think", "gspeak_update_playerlist", function()
--- 	if !gspeak.cl.TS.inChannel then return end
-
--- 	local now = CurTime()
---     if updatePlayerCooldown > now then return end
-
--- 	gspeak:UpdatePlayers()
--- 	updatePlayerCooldown = now + 10
+-- 	--print()
 -- end)
 
 -- net.Receive("gspeak_name_change", function( len )

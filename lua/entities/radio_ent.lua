@@ -9,19 +9,19 @@ ENT.Author = "Thendon.exe"
 ENT.Category = "Gspeak"
 ENT.AutomaticFrameAdvance = true
 ENT.RenderGroup = RENDERGROUP_OPAQUE
-ENT.Radio = true
+--ENT.Radio = true
 
 function ENT:Initialize()
+	self:DefaultInitialize()
 	self:DrawShadow( false )
-	self.connected_radios = {}
 	self.last_sound = 0
 	self.trigger_com = false
-	self.settings = { trigger_at_talk = false, start_com = gspeak.settings.radio_start, end_com = gspeak.settings.radio_stop }
 	if CLIENT then
+		self:GetParent().ent = self
 		gspeak:NoDoubleEntry( self, gspeak.cl.radios )
 		net.Start("radio_init")
 			net.WriteEntity( self )
-		eToServer()
+		net.SendToServer()
 	end
 end
 
@@ -81,10 +81,10 @@ function ENT:Draw()
 	cam.End3D2D()
 end
 
-function ENT:UpdateUI()
-	if !IsValid(self:GetParent()) then return end
-	self:GetParent().connected_radios = self.connected_radios
-end
+-- function ENT:UpdateUI()
+-- 	if !IsValid(self:GetParent()) then return end
+-- 	self:GetParent().connected_radios = self.connected_radios
+-- end
 
 function ENT:Think()
 	local own_online = self:GetOnline()

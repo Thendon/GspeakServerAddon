@@ -7,6 +7,10 @@ surface.CreateFont("TnfBig", {font = "thenextfont", size = 100 } )
 surface.CreateFont("TnfSmall", {font = "thenextfont", size = 40 } )
 surface.CreateFont("TnfTiny", {font = "thenextfont", size = 20 } )
 
+if (gspeak.cl != nil) then 
+	gspeak.io:Disconnect() 
+end
+
 gspeak.cl = {
 	materials = {
 		off = Material( "gspeak/gspeak_off.png", "noclamp unlitgeneric" ),
@@ -27,7 +31,7 @@ gspeak.cl = {
 	settings = {},
 	running = false,
 	failed = false,
-	start_talking = false,
+	--start_talking = false,
 	tm_tab = 0,
 	tslib = {
 		version = 0,
@@ -138,26 +142,7 @@ net.Receive("gspeak_server_settings", function()
 end)
 
 net.Receive("gspeak_init", function( len )
-	-- for k, v in pairs(ents.GetAll()) do
-	-- 	if !IsValid(v) then continue end
-	-- 	if v:IsPlayer() then
-	-- 		gspeak:NoDoubleEntry(v, gspeak.cl.players)
-	-- 	elseif v:IsRadio() then
-	-- 		gspeak:NoDoubleEntry(v, gspeak.cl.radios)
-	-- 	end
-	-- end
-
-	--if GAMEMODE_NAME == "terrortown" then gspeak.terrortown = true end
-
-	--local ply_var_table = net.ReadTable()
-	--local radio_var_table = net.ReadTable()
 	gspeak.settings = net.ReadTable()
-
-	-- for k, v in pairs(ply_var_table) do
-	-- 	v[1].talkmode = v[2]
-	-- 	v[1].ts_id = v[3]
-	-- 	v[1].talking = v[4]
-	-- end
 
 	--cast icon picture to material and save it
 	gspeak:RefreshIcons()

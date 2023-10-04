@@ -3,11 +3,11 @@
 local tPlayers = {
     Player1 = {
         pos = Vector(34234, 234234, 234),
-        name = "Twat"
+        name = "Hello"
     },
     Player2 = {
         pos = Vector(2345342, 34253245, 32455),
-        name = "Posh Prick"
+        name = "Test"
     }
 }
 

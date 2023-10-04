@@ -32,7 +32,16 @@ function handler:SendSettings()
 	tslib.sendSettings(	gspeak.settings.radio.down,
 						gspeak.settings.radio.dist,
 						gspeak.settings.radio.volume,
-						gspeak.settings.radio.noise )
+						gspeak.settings.radio.noise,
+
+						gspeak.settings.water.scale,
+						gspeak.settings.water.smooth,
+						gspeak.settings.water.boost,
+
+						gspeak.settings.wall.scale,
+						gspeak.settings.wall.smooth,
+						gspeak.settings.wall.boost
+					)
 end
 
 --Tries to move the User into the channel until succeeds
@@ -113,9 +122,7 @@ function handler:CheckConnection()
 		if gspeak.cl.TS.version == 0 then return end
 		if gspeak.cl.TS.version < gspeak.cl.TS.req or gspeak.cl.TS.version > gspeak.cl.TS.max then gspeak.cl.TS.failed = true return end
 
-		net.Start( "ts_talkmode" )
-			net.WriteInt( gspeak.cl.settings.talkmode, 32 )
-		net.SendToServer()
+		LocalPlayer():SetTalkmode(gspeak.cl.settings.talkmode)
 
 		tslib.delAll()
 		tslib.sendClientPos( 0, 0, 0, 0, 0, 0)
@@ -127,74 +134,62 @@ function handler:CheckConnection()
 end
 
 function handler:Disconnect()
-	if gspeak.cl.TS.connected then
-		return
-	end
+	if !gspeak.cl.TS.connected then return end
 
+	tslib.forceKick( function(success) end )
 	tslib.discoTS()
+	gspeak.cl.TS.connected = false
 end
 
 function handler:SendName(name)
+	if !gspeak.cl.TS.connected then return end
+	
     tslib.sendName( name, function( success )
         gspeak.ConsolePrint( "name change " .. (success and "successfull" or "failed" ))
     end )
 end
 
--- function handler:RemovePlayer(playerIndex, isEntity, entityIndex)
--- 	tslib.delPos(playerIndex, isEntity, entityIndex)
--- end
-
--- function handler:SetPlayer(tsId, volume, playerEntIndex, pos, isEntity, entityIndex)
--- 	tslib.sendPos(tsId, volume, playerEntIndex, pos.x, pos.y, pos.z, isEntity, entityIndex)
--- end
-
---DREAM VERSION
-
--- function handler:SetPlayer(tsId, volume, playerEntIndex, pos, isRadio, entityIndex)
--- 	tslib.sendPos(tsId, volume, playerEntIndex, pos.x, pos.y, pos.z, isRadio, entityIndex)
--- end
-
--- function handler:RemovePlayer(playerIndex, isEntity, entityIndex)
---     tslib.delPos(playerIndex, isEntity, entityIndex)
--- end
-
 function handler:SetHearable(tsId, volume, pos, effect)
-	tslib.sendPlayer(tsId, volume, pos.x, pos.y, pos.z, effect)
+	if !gspeak.cl.TS.connected then return end
+	
+	return tslib.sendPlayer(tsId, volume, pos.x, pos.y, pos.z, effect)
 end
 
 function handler:RemoveHearable(tsId)
-	tslib.removePlayer(tsId)
+	if !gspeak.cl.TS.connected then return end
+
+	return tslib.removePlayer(tsId)
 end
 
 function handler:GetHearableData(tsId)
+	if !gspeak.cl.TS.connected then return end
+
 	return tslib.getPlayerData(tsId)
 end
 
---DREAM VERSION
-
 function handler:SetLocalPlayer(foward, up)
+	if !gspeak.cl.TS.connected then return end
+
     tslib.sendClientPos(foward.x, foward.y, foward.z, up.x, up.y, up.z)
 end
 
 function handler:IsTalking()
+	if !gspeak.cl.TS.connected then return end
+
     return tslib.talkCheck()
 end
 
 function handler:IsInChannel()
+	if !gspeak.cl.TS.connected then return end
+
 	return tslib.getInChannel()
 end
 
 function handler:GetTsId()
+	if !gspeak.cl.TS.connected then return end
+
 	return tslib.getTsID()
 end
-
--- function handler:GetHearables()
--- 	return tslib.getAllID()
--- end
-
--- function handler:Tick()
--- 	tslib.tick()
--- end
 
 //************************************************************//
 //							DEBUGGING
@@ -203,6 +198,8 @@ end
 local last_load_a = 0
 
 local function arrayListUpdate( DList )
+	if (!gspeak.cl.TS.connected) then return end
+
 	if last_load_a > CurTime() - 1 then return end
 	last_load_a = CurTime()
 	DList:Clear()

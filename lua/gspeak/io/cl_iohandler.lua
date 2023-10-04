@@ -22,20 +22,12 @@ function gspeak.io:Disconnect()
     tslibHandler:Disconnect()
 end
 
--- function gspeak.io:SetPlayer(tsId, volume, playerIndex, pos, isEntity, entityIndex)
---     tslibHandler:SetPlayer(tsId, volume, playerIndex, pos, isEntity, entityIndex)
--- end
-
--- function gspeak.io:RemovePlayer(playerIndex, isEntity, entityIndex)
---     tslibHandler:RemovePlayer(playerIndex, isEntity, entityIndex)
--- end
-
 function gspeak.io:SetHearable(tsId, volume, pos, effect)
-    tslibHandler:SetHearable(tsId, volume, pos, effect)
+    return tslibHandler:SetHearable(tsId, volume, pos, effect)
 end
 
 function gspeak.io:RemoveHearable(tsId)
-    tslibHandler:RemoveHearable(tsId)
+    return tslibHandler:RemoveHearable(tsId)
 end
 
 function gspeak.io:GetHearableData(tsId)

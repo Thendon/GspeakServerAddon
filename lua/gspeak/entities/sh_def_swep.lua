@@ -25,7 +25,6 @@ SWEP.HoldType = "slam"
 
 function SWEP:DefaultInitialize()
 	self.last_think = 0
-	self.connected_radios = {}
 	self.deployed = false
 
 	self:SetWeaponHoldType( self.HoldType )
@@ -99,14 +98,14 @@ function SWEP:PostDrawViewModel(vm, weapon, ply)
 	surface.SetDrawColor(alpha,alpha,alpha,255)
 	surface.SetMaterial(gspeak.cl.materials.radio_back)
 	surface.DrawTexturedRect(x-15,y-37,170,170)
-	if self.online then
+	if self.online && self.ent then
 		draw.DrawText( "Frequency", "BudgetLabel", x, y, white, TEXT_ALIGN_LEFT )
 		draw.DrawText( tostring(self.freq/10), "BudgetLabel", x+140, y, white, TEXT_ALIGN_RIGHT )
 		y = y + 7
 		if self.show_hearable then
 			draw.DrawText( "--------------------", "BudgetLabel", x, y, white, TEXT_ALIGN_LEFT)
 			y = y + 7
-			for k, v in pairs(self.connected_radios) do
+			for k, v in pairs(self.ent.connected_radios) do
 				if k == 7 then break end
 				if gspeak:radio_valid(Entity(v)) then
 					local speaker = Entity(v):GetSpeaker()
@@ -168,6 +167,26 @@ function SWEP:Equip()
 	self:OwnerChanged()
 end
 
+local function frequencySlider( panel )
+	local panel_value = panel:GetValue()
+	panel.next_try = panel.next_try or 0
+	panel.last_value = panel.last_value or panel_value
+
+	if panel.last_value == panel_value then return end
+	local now = CurTime() 
+	if panel.next_try < now then return end
+
+	local new_value = math.floor( (panel_value * 10) + 0.5 )
+	net.Start("radio_freq_change")
+		net.WriteEntity( self )
+		net.WriteBool( true ) --SWEP true ENT false
+		net.WriteInt( new_value , 32 )
+	net.SendToServer()
+	self.freq = new_value
+	panel.last_value = panel_value
+	panel.next_try = now + 0.1
+end
+
 function SWEP:open_settings()
 	local DermaPanel = vgui.Create( "DFrame" )
 	DermaPanel:Center()
@@ -179,8 +198,6 @@ function SWEP:open_settings()
 		draw.RoundedBox( 0, 0, 0, w, h, Color( 75, 75, 75, 255 ) )
 	end
 
-	local last_try = 0
-	local last_val
 	local DSlider = vgui.Create( "DNumSlider", DermaPanel )
 	DSlider:SetPos( 10, 50 )
 	DSlider:SetSize( 500, 25 )
@@ -189,25 +206,7 @@ function SWEP:open_settings()
 	DSlider:SetMax( self.freq_max/10 )
 	DSlider:SetDecimals( 1 )
 	DSlider:SetValue( self.freq/10 )
-	DSlider.Think = function( panel )
-		local panel_value = panel:GetValue()
-		last_try = last_try or 0
-		last_value = last_value or panel_value
-		if last_value != panel_value then
-			local now = CurTime()
-			if last_try < now - 0.1 then
-				local new_value = math.floor( (panel_value * 10) + 0.5 )
-				net.Start("radio_freq_change")
-					net.WriteEntity( self )
-					net.WriteBool( true ) --SWEP true ENT false
-					net.WriteInt( new_value , 32 )
-				net.SendToServer()
-				self.freq = new_value
-				last_value = panel_value
-				last_try = now
-			end
-		end
-	end
+	DSlider.Think = frequencySlider
 
 	DermaPanel:SetPos( ScrW()/2 - 250, ScrH()/2 - 50/2)
 end

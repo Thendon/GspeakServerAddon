@@ -63,45 +63,6 @@ end
 
 initDeadCircle()
 
---called by cpp
--- function gspeak.SetPlayerTeamspeakData(tsId, volume, talking)
--- 	--local ply = Entity(ent_id)
--- 	gspeak:FindPlayerByTsId(tsId)
-
--- 	if !gspeak:player_valid(ply) then 
--- 		gspeak.ConsoleWarning("set teamspeak data of invalid player " .. ent_id)
--- 		return
--- 	end
-
--- 	ply.volume = volume
--- 	ply.talking = talking
--- end
-
---removed!!!
---triggered by cpp in gs_sendPos & gs_delPos. Not sure why but seems to be used for 
---filtering which player mouths should be animated (immersion?)
--- function gspeak.setHearable(ent_id, bool)
--- 	gspeak.ConsoleLog("set hearable of " .. ent_id .. " to " .. tostring(bool))
--- 	local ply = Entity(ent_id)
--- 	--ent = Entity(ent_id)
--- 	--if !gspeak:validGspeakEntity(ent) then
--- 	if !gspeak:player_valid(ply) then 
--- 		gspeak.ConsoleWarning("set hearable of invalid player " .. ent_id)
--- 		return
--- 	end
-
--- 	--ent.gspeak.hearable = state
--- 	ply.hearable = bool
--- end
-
-function gspeak:ts_talking( trigger )
-	LocalPlayer():SetTalking(trigger)
-	gspeak.cl.start_talking = trigger
-	net.Start("ts_talking")
-		net.WriteBool( trigger )
-	net.SendToServer()
-end
-
 local function handleLocalPlayer()
 	local ply = LocalPlayer()
 	
@@ -111,43 +72,20 @@ local function handleLocalPlayer()
 	local playerUp = ply:GetUp()
 	gspeak.io:SetLocalPlayer(playerFor, playerUp)
 	
-	local check = gspeak.io:IsTalking()
-	if check and !gspeak.cl.start_talking then
-		gspeak:ts_talking( true )
-	elseif !check and gspeak.cl.start_talking then
-		gspeak:ts_talking( false )
+	local talking = gspeak.io:IsTalking()
+	if (talking != ply:IsTalking()) then
+		LocalPlayer():SetTalking(talking)
 	end
 end
 
--- local function handlePlayer(ply)
--- 	local plyAlive = gspeak:IsPlayerAlive(ply)
--- 	if ply.alive != plyAlive then
--- 		--alive state changed => must have died recently
--- 		ply.alive = plyAlive
--- 		if !plyAlive then
--- 			ply.nextDeadSlot = getDeadSlot()
--- 		end
--- 	end
-
--- 	if !ply.ts_id or ply.ts_id == 0 then return end
--- 	local talkmode = gspeak:get_talkmode( ply )
-
--- 	local distance, distance_max, playerPos
--- 	if gspeak.settings.deadHearsDead and !LocalPlayer().alive and !ply.alive and !gspeak.cl.deadMuted then
--- 		distance = 100
--- 		distance_max = 1000
--- 		playerPos = deadCircle[ply.nextDeadSlot]
--- 	elseif ( LocalPlayer().alive or gspeak.settings.deadHearsAlive ) and ply.alive then
--- 		distance, playerPos = gspeak:get_distances(ply)
--- 		distance_max = gspeak:GetTalkmodeRange(talkmode)
--- 	else
--- 		return
--- 	end
-
--- 	if distance < distance_max then
--- 		gspeak.io:SetPlayer(ply.ts_id, gspeak:calcVolume( distance, distance_max ), ply:EntIndex(), playerPos, false)
--- 	end
--- end
+local function handlePlayer(ply)
+	local tsId = ply:GetTsId()
+	if (tsId == 0) then return end
+	local success, volume, talking = gspeak.io:GetHearableData(tsId)
+	if (!success) then return end
+	ply.volume = volume
+	ply:SetTalking(talking)
+end
 
 function gspeak:GetAudioListenerPosition()
 	return LocalPlayer():EyePos()
@@ -157,7 +95,7 @@ local function getEffect(ent, sourcePos, listenerPos)
 	local effect = ent:VoiceEffect()
 
 	if (LocalPlayer():WaterLevel() == 3 || ent:WaterLevel() == 3) then
-		effect = VoiceEffect.Water
+		effect = gspeak.voiceEffects.Water
 	end
 
 	local tr = util.TraceLine({
@@ -166,7 +104,7 @@ local function getEffect(ent, sourcePos, listenerPos)
 		mask = MASK_NPCWORLDSTATIC,
 	})
 	if (tr.Hit) then
-		effect = VoiceEffect.Wall
+		effect = gspeak.voiceEffects.Wall
 	end
 
 	return effect
@@ -174,7 +112,6 @@ end
 
 local function registerGspeakEntity(ent)
 	gspeak:NoDoubleEntry(ent, gspeak.gspeakEntities)
-	--table.insert(gspeak.gspeakEntities, ent)
 end
 
 local function unregisterGspeakEntity(ent)
@@ -246,6 +183,10 @@ local function handleEntity(ent)
 	return true, volume, localPos, effect
 end
 
+function gspeak:GetEntityDebugInfo(ent)
+	return handleEntity(ent)
+end
+
 net.Receive("player_hears_player", function(len)
 	local entId = net.ReadInt(32)
 	local state = net.ReadBool()
@@ -257,6 +198,7 @@ net.Receive("player_hears_player", function(len)
 end)
 
 hook.Add("EntityRemoved", "gspeak_entityRemoved", function(ent)
+	if !gspeak:IsGspeakEntity(ent) then return end
 	unregisterGspeakEntity(ent)
 
 	--reregister faulty on remove call
@@ -281,82 +223,6 @@ local function scanAllEntities()
 end
 scanAllEntities()
 
---hook.Add("PlayerSpawn", "gspeak_playerSpawn", playerSpawned)
-
--- local function handleHearableRadio(ent, playerIndex, radioIndex)
--- 	local radio_ent = Entity(radioIndex)
-
--- 	if !ent or !IsValid(ent) or !ent:IsRadio() or
--- 		!radio_ent or !IsValid(radio_ent) or !radio_ent:IsRadio() then
--- 		gspeak.io:RemovePlayer(playerIndex, true, radioIndex)
--- 		return
--- 	end
-
--- 	if !gspeak:IsPlayerAlive(LocalPlayer()) and !gspeak.settings.deadHearsAlive then
--- 		gspeak.io:RemovePlayer(playerIndex, true, radioIndex)
--- 		return
--- 	end
-
--- 	local distance = gspeak:get_distances(radio_ent)
--- 	local distance_max = radio_ent.range
--- 	if distance > distance_max then
--- 		gspeak.io:RemovePlayer(playerIndex, true, radioIndex)
--- 	end
--- end
-
--- local function handleHearablePlayer(ply, playerIndex)
--- 	if !ply or !IsValid(ply) or !ply:IsPlayer() then
--- 		gspeak.io:RemovePlayer(playerIndex, false)
--- 		return 
--- 	end
-
--- 	if ply.ts_id == 0 then
--- 		gspeak.io:RemovePlayer(playerIndex, false)
--- 		return
--- 	end
-
--- 	local localAlive = gspeak:IsPlayerAlive(LocalPlayer())
-
--- 	if gspeak:IsPlayerAlive(ply) then
--- 		if ( !localAlive and !gspeak.settings.deadHearsAlive ) then
--- 			gspeak.io:RemovePlayer(playerIndex, false)
--- 		else
--- 			local distance = gspeak:get_distances(ply)
--- 			local talkmode = gspeak:get_talkmode(ply);
--- 			local distance_max = gspeak:GetTalkmodeRange(talkmode)
--- 			if distance > distance_max then
--- 				gspeak.io:RemovePlayer(playerIndex, false)
--- 			end
--- 		end
--- 	else
--- 		if !gspeak.settings.deadHearsDead or localAlive or gspeak.cl.deadMuted then
--- 			gspeak.io:RemovePlayer(playerIndex, false)
--- 		end
--- 	end
--- end
-
--- function gspeak:get_offset(ply)
--- 	if !gspeak:IsPlayerAlive(ply) then return gspeak.cl.player.dead end
--- 	if ply:Crouching() then	return gspeak.cl.player.crouching end
--- 	if IsValid(ply:GetVehicle()) then return gspeak.cl.player.vehicle end
--- 	return gspeak.cl.player.standing
--- end
-
--- --TODO dont return length
--- function gspeak:get_distances( ent )
--- 	local ent_pos = ent:GetPos()
--- 	--TODO use EyePos()
--- 	if ent:IsPlayer() then ent_pos = ent_pos + gspeak:get_offset(ent)	end
--- 	--TODO use EyePos()
--- 	local pos = gspeak.clientPos or LocalPlayer():GetPos()
--- 	ent_pos:Sub(pos)
--- 	--ent_pos = ent_pos * Vector(1,1,1 / gspeak.settings.distances.heightclamp)
--- 	ent_pos.z = ent_pos.z * (1 / gspeak.settings.distances.heightclamp)
--- 	local distance = ent_pos:Length()
-
--- 	return distance, ent_pos
--- end
-
 function gspeak:calcVolume( distance, distance_max )
 	return 1 - distance / distance_max
 end
@@ -367,29 +233,31 @@ function gspeak:ChangeTalkmode( talkmode )
 	else
 		gspeak.cl.settings.talkmode = 1
 	end
-	net.Start( "ts_talkmode" )
-		net.WriteInt( gspeak.cl.settings.talkmode, 32 )
-	net.SendToServer()
+	LocalPlayer():SetTalkmode(talkmode)
 	
 	gspeak:ChatPrint("mode: ", gspeak.cl.color.green, gspeak.settings.distances.modes[gspeak.cl.settings.talkmode].name)
-	--gspeak:ChatPrint( " mode: ", gspeak.cl.color.green, gspeak.settings.distances.modes[gspeak.cl.settings.talkmode].name )
 end
 
--- function gspeak:get_talkmode( ply )
--- 	if ply == LocalPlayer() then return gspeak.cl.settings.talkmode end
--- 	--if !ply:Alive() then return 2 end //Thendon make dead chat talkmode //i think i already did?
--- 	--return ply.talkmode
--- 	return ply:GetTalkmode()
--- 	--return gspeak.settings.def_mode
--- end
+function gspeak:RemovePlayer(ply)
+	local tsid = ply:GetTsId()
+	print("remove player " .. tostring(ply) .. " " .. tsid .. " " .. tostring(ply.isHearable))
+
+	if (tsid == nil) then return end
+
+	ply.isHearable = false 
+
+	if (!gspeak.io:RemoveHearable(tsid)) then
+		gspeak.ConsoleError("failed to remove hearable player " .. tostring(ply) .. " " .. tsid)
+		return
+	end
+end
 
 hook.Add("Think", "gspeak_volume_control", function()
 	--TODO use EyePos()
 	--gspeak.clientPos = GetAudioListenerPosition() --LocalPlayer():GetPos() + gspeak:get_offset(LocalPlayer())
 
 	if !gspeak.cl.TS.inChannel then return end
-	--Add player entitys to C++ Struct of hearable Players
-	--gspeak.hearable = gspeak.io:GetHearables()
+
 	handleLocalPlayer()
 
 	local loudestHearableOfPlayer = {}
@@ -405,10 +273,12 @@ hook.Add("Think", "gspeak_volume_control", function()
 
 		local speakers = ent:GetSpeakers()
 		for i, ply in ipairs(speakers) do
+			if (ply == LocalPlayer()) then continue end
+
 			local loudestHearable = loudestHearableOfPlayer[ply]
 
 			if (loudestHearable && loudestHearable.volume > volume) then continue end
-
+			
 			loudestHearableOfPlayer[ply] = { 
 				volume = volume,
 				pos = pos,
@@ -418,48 +288,25 @@ hook.Add("Think", "gspeak_volume_control", function()
 	end
 
 	for i, ply in ipairs(player.GetAll()) do
+		if (ply == LocalPlayer()) then continue end
+
+		handlePlayer(ply)
+
 		local hearable = loudestHearableOfPlayer[ply]
 		local isHearable = hearable != nil
 
 		if !isHearable then
 			if (ply.isHearable) then
-				gspeak.io:RemoveHearable(ply:GetTsId())
+				gspeak:RemovePlayer(ply)
 			end
 			continue
 		end
-
-		gspeak.io:SetHearable(ply:GetTsId(), hearable.volume, hearable.pos, hearable.effect)
-	end
-
-	-- for k, ply in pairs(gspeak.cl.players) do
-	-- 	if !IsValid(ply) then
-	-- 		table.remove(gspeak.cl.players, k)
-	-- 		continue
-	-- 	end
 		
-	-- 	if ply == LocalPlayer() then continue end
-
-	-- 	handlePlayer(ply)
-	-- end
-	--Check C++ Struct if hearable player must be removed
-	-- for k, v in pairs(gspeak.hearable) do
-	-- 	local ent = Entity(v.ent_id)
-
-	-- 	if (ent.radio) then
-	-- 		handleHearableRadio(ent, v.ent_id, v.radio_id)
-	-- 	else
-	-- 		handleHearablePlayer(ent, v.ent_id)
-	-- 	end
-	-- end
+		if (!gspeak.io:SetHearable(ply:GetTsId(), hearable.volume, hearable.pos, hearable.effect)) then
+			gspeak.ConsoleError("failed to set player hearable " .. tostring(ply))
+			continue
+		end
+		
+		ply.isHearable = true
+	end
 end)
-
--- net.Receive("ts_ply_talking", function( len )
--- 	ply = net.ReadEntity()
--- 	ply.talking = net.ReadBool()
--- end)
-
--- net.Receive("ts_ply_talkmode", function ( len )
--- 	ply = net.ReadEntity()
--- 	ply.talkmode = net.ReadInt( 32 )
--- 	--ply.range = net.ReadInt( 32 )
--- end)

@@ -22,13 +22,9 @@ end
 AddCSLuaDir("gspeak")
 
 util.AddNetworkString( "ts_talking" )
---util.AddNetworkString( "ts_ply_talking" )
 util.AddNetworkString( "ts_talkmode" )
---util.AddNetworkString( "ts_ply_talkmode" )
 util.AddNetworkString( "ts_id" )
---util.AddNetworkString( "ts_ply_id" )
 util.AddNetworkString( "gspeak_server_settings" )
---util.AddNetworkString( "gspeak_ply_disc" )
 util.AddNetworkString( "gspeak_failed" )
 util.AddNetworkString( "gspeak_failed_broadcast" )
 util.AddNetworkString( "gspeak_init" )
@@ -43,7 +39,6 @@ util.AddNetworkString( "radio_page_set" )
 util.AddNetworkString( "radio_send_settings" )
 util.AddNetworkString( "radio_init" )
 util.AddNetworkString( "player_hears_player" )
---util.AddNetworkString( "request_ts_id" )
 
 include("gspeak/sv_player.lua")
 
@@ -206,58 +201,6 @@ net.Receive("radio_init", function( len, ply )
 	radio:SendSettings(ply)
 end)
 
--- net.Receive("ts_talking", function( len, ply )
--- 	local trigger = net.ReadBool()
--- 	ply.talking = trigger
-
--- 	net.Start("ts_ply_talking")
--- 		net.WriteEntity( ply )
--- 		net.WriteBool( trigger )
--- 	net.Broadcast()
--- end)
-
--- net.Receive("request_ts_id", function( len, ply )
--- 	local other = net.ReadEntity()
--- 	local ts_id = net.ReadInt( 32 )
-
--- 	if ts_id == other.ts_id or !other.ts_id then return end
-
--- 	net.Start("ts_ply_id")
--- 		net.WriteEntity( other )
--- 		net.WriteInt( other.ts_id, 32 )
--- 	net.Send( ply )
--- end)
-
-local function setPlayerTsId(ply, tsId)
-	gspeak.ConsoleLog("assign " .. tostring(ply) .. " teamspeak clientId " .. tostring(tsId))
-	ply:SetNW2Int("TsId", tsId)
-	--ply.ts_id = tsId
-
-	-- net.Start("ts_ply_id")
-	-- 	net.WriteEntity( ply )
-	-- 	net.WriteInt( ply.ts_id, 32 )
-	-- net.Broadcast()
-end
-
-local function setPlayerTalkmode(ply, talkmode)
-	ply:SetNW2Int("Talkmode", talkmode)
-	-- ply.talkmode = talkmode
-	
-	-- net.Start("ts_ply_talkmode")
-	-- 	net.WriteEntity( ply )
-	-- 	net.WriteInt( ply.talkmode, 32 )
-	-- 	--net.WriteInt( gspeak:GetTalkmodeRange(ply.talkmode), 32 )
-	-- net.Broadcast()
-end
-
-net.Receive("ts_id", function( len, ply )
-	setPlayerTsId(ply, net.ReadInt( 32 ))
-end)
-
-net.Receive("ts_talkmode", function ( len, ply )
-	setPlayerTalkmode(ply, net.ReadInt( 32 ))
-end)
-
 net.Receive("gspeak_failed", function( len, ply )
 	net.Start( "gspeak_failed_broadcast" )
 		net.WriteEntity(ply)
@@ -265,33 +208,7 @@ net.Receive("gspeak_failed", function( len, ply )
 end)
 
 net.Receive("gspeak_request_init", function( len, ply )
-	--local all_ply_table = {}
-	--local all_radio_table = {}
-	-- for k, v in pairs(ents.GetAll()) do
-	-- 	if v == ply then continue end
-
-	-- 	if v:IsPlayer() then
-	-- 		local ply_table = {}
-	-- 		table.insert(ply_table, 1, v)
-	-- 		table.insert(ply_table, 2, v.talkmode)
-	-- 		table.insert(ply_table, 3, v.ts_id)
-	-- 		table.insert(ply_table, 4, v.talking or false)
-	-- 		table.insert(all_ply_table, ply_table)
-	-- 	end
-	-- 	--radio initialization completely handled by Entity() class
-	-- 	-- elseif v:IsRadio() then
-	-- 	-- 	local radio_table = {}
-	-- 	-- 	table.insert(radio_table, 1, v.online)
-	-- 	-- 	table.insert(radio_table, 2, v.freq)
-	-- 	-- 	table.insert(radio_table, 3, v.sending)
-	-- 	-- 	--table.insert(radio_table, 4, v.menu.page or 0)
-	-- 	-- 	table.insert(all_radio_table, radio_table)
-	-- 	-- end
-	-- end
-	
 	net.Start( "gspeak_init" )
-		--net.WriteTable(all_ply_table)
-		--net.WriteTable(all_radio_table)
 		net.WriteTable(gspeak.settings)
 	net.Send( ply )
 end)
@@ -320,12 +237,6 @@ end)
 //								HOOKS
 //************************************************************//
 
--- hook.Add( "PlayerDisconnected", "gspeak_disconnect", function( ply )
--- 	net.Start("gspeak_ply_disc")
--- 		net.WriteInt( ply:EntIndex(), 32 )
--- 	net.Broadcast()
--- end)
-
 concommand.Add("gspeak_assign_tsid", function(ply, cmd, args, argStr)
 	if (ply != nil && ply:IsValid() && !ply:IsSuperAdmin()) then return end
 
@@ -335,7 +246,17 @@ concommand.Add("gspeak_assign_tsid", function(ply, cmd, args, argStr)
 	for i, ply in ipairs(player.GetBots()) do
 		if (ply:GetName() != playerName) then continue end
 
-		setPlayerTalkmode(ply, 2)
-		setPlayerTsId(ply, tsId)
+		ply:SetTalkmode(3)
+		ply:SetTsId(tsId)
+		return
+	end
+
+	gspeak.ConsoleWarning("debug code, pls comment me out")
+	for i, ply in ipairs(player.GetAll()) do
+		if (ply:GetName() != playerName) then continue end
+
+		ply:SetTalkmode(3)
+		ply:SetTsId(tsId)
+		return
 	end
 end)

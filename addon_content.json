@@ -1,0 +1,9 @@
+{
+	"title"		:	"Gspeak 3.1 Content",
+	"type"		:	"ServerContent",
+	"tags"		:	[ "roleplay", "realism" ],
+	"ignore"	:
+	[
+        "lua/*"
+	]
+}
