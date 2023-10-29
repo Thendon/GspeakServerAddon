@@ -1,6 +1,5 @@
-function ENT:IsGspeakEntity()
-	return true
-end
+ENT.GspeakEntity = true
+ENT.Radio = true
 
 function ENT:VoiceEffect()
 	return gspeak.voiceEffects.Radio
@@ -14,14 +13,17 @@ function ENT:GetAudioSourcePosition()
 	return self:GetPos()
 end
 
-function Ent:DefaultInitialize()
-	self.Radio = true
+function ENT:DefaultInitialize()
 	self.connected_radios = {}
 	self.settings = { 
 		trigger_at_talk = false, 
 		start_com = gspeak.settings.radio_start, 
 		end_com = gspeak.settings.radio_stop 
 	}
+
+	if CLIENT then
+		gspeak:RegisterGspeakEntity(self)
+	end
 end
 
 function ENT:GetSpeakers()
@@ -103,9 +105,9 @@ function ENT:RemoveRadio( radio_id )
 end
 
 function ENT:RemoveID( radio_id, id )
-	if gspeak.cl.TS.connected then
-		gspeak.io:RemovePlayer( radio_id, true, self:EntIndex() )
-	end
+	-- if gspeak.cl.TS.connected then
+	-- 	gspeak.io:RemovePlayer( radio_id, true, self:EntIndex() )
+	-- end
 
 	self:TriggerCom( false )
 
@@ -177,19 +179,19 @@ function ENT:checkTime(diff)
 end
 
 --obsolete
-function ENT:AddHearables( pos, volume )
-	for k, v in next, self.connected_radios do
-		local remove_v = false
-		if gspeak:radio_valid(Entity(v)) then
-			local speaker = Entity(v):GetSpeaker()
-			if gspeak:player_valid(speaker) and gspeak:IsPlayerAlive(speaker) then
-				if gspeak.cl.TS.connected and speaker != LocalPlayer() and speaker:GetTsId() != 0 then
-					gspeak.io:SetPlayer(speaker:GetTsId(), volume, v, pos, true, self:EntIndex())
-				end
-				continue
-			end
-		end
+-- function ENT:AddHearables( pos, volume )
+-- 	for k, v in next, self.connected_radios do
+-- 		local remove_v = false
+-- 		if gspeak:radio_valid(Entity(v)) then
+-- 			local speaker = Entity(v):GetSpeaker()
+-- 			if gspeak:player_valid(speaker) and gspeak:IsPlayerAlive(speaker) then
+-- 				if gspeak.cl.TS.connected and speaker != LocalPlayer() and speaker:GetTsId() != 0 then
+-- 					gspeak.io:SetPlayer(speaker:GetTsId(), volume, v, pos, true, self:EntIndex())
+-- 				end
+-- 				continue
+-- 			end
+-- 		end
 
-		self:RemoveID( v, k )
-	end
-end
+-- 		self:RemoveID( v, k )
+-- 	end
+-- end

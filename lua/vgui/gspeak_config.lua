@@ -710,6 +710,12 @@ local function DrawTeamspeakConfig(DermaActive, xPos, yPos, diff)
 	DTextEntry:SetSize( 150, 25 )
 	DTextEntry:SetText( gspeak.settings.cmd )
 	DTextEntry.OnEnter = gui_change
+	local DTextEntry = vgui.Create( "DTextEntry", DermaActive )
+	DTextEntry:SetName( "join cmd" )
+	DTextEntry:SetPos( xPos+130, yPos )
+	DTextEntry:SetSize( 150, 25 )
+	DTextEntry:SetText( gspeak.settings.joinCmd )
+	DTextEntry.OnEnter = gui_change
 
 	yPos = yPos + diff
 	local DLabel = vgui.Create( "DLabel", DermaActive )
@@ -1014,11 +1020,18 @@ concommand.Add( "gspeak", function()
 	end
 end)
 
+concommand.Add( "gjoin", function()
+	LocalPlayer():Join()
+end)
+
 hook.Add( "OnPlayerChat", "gspeak_cmd_hook", function( ply, text )
 	if ply != LocalPlayer() then return end
 	
 	if text == gspeak.settings.cmd then
 		LocalPlayer():ConCommand( "gspeak" )
+		return true
+	elseif text == gspeak.settings.joinCmd then
+		LocalPlayer():ConCommand( "gjoin" )
 		return true
 	end
 end)

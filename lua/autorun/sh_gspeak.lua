@@ -27,6 +27,7 @@ gspeak.default_settings = {
 	},
 	def_mode = 2,
 	cmd =  "!gspeak",
+	joinCmd = "!gjoin",
 	def_key = KEY_LALT,
 	head_icon = true,
 	head_name = false,
@@ -86,11 +87,13 @@ gspeak.voiceEffects = {
 }
 
 local meta = FindMetaTable("Entity")
+
 function meta:IsRadio()
 	return self.Radio and true or false
 end
+
 function meta:IsGspeakEntity()
-	return false
+	return self.GspeakEntity and true or false
 end
 
 include("gspeak/sh_logging.lua")
@@ -123,9 +126,8 @@ function gspeak:radio_valid(radio)
 end
 
 function gspeak:GetTalkmodeRange(talkmode)
-	if talkmode > #gspeak.settings.distances.modes then return 0 end
+	if talkmode <= 0 || talkmode > #gspeak.settings.distances.modes then return -1 end
 	local mode = gspeak.settings.distances.modes[talkmode]
-	if !mode then return 0 end
 	return mode.range
 end
 

@@ -18,6 +18,14 @@ function gspeak.io:CheckConnection()
     tslibHandler:CheckConnection()
 end
 
+function gspeak.io:Kick()
+    tslibHandler:Kick()
+end
+
+function gspeak.io:Join()
+    tslibHandler:Join()
+end
+
 function gspeak.io:Disconnect()
     tslibHandler:Disconnect()
 end

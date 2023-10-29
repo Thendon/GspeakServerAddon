@@ -1,4 +1,5 @@
 --WIP not working at all
+--prefere this type of registering type beforehand but what do i know
 
 if CLIENT then
     local entMeta = FindMetaTable("Entity")

@@ -199,10 +199,10 @@ function gspeak:DrawStatus()
 		errorY = posY - 10
 		if gspeak.cl.tslib.wrongVersion then
 			header = "TsLib: Wrong Version"
-			text = "Your gmcl_tslib_win32.dll file is on\nversion "..tostring(gspeak.cl.tslib.version/1000).."! Please "..gspeak:VersionWord(gspeak.cl.tslib).." version "..tostring(gspeak.cl.tslib.req/1000).."!"
+			text = "Your gmcl_tslib_win"..branch ..".dll file is on\nversion "..tostring(gspeak.cl.tslib.version/1000).."! Please "..gspeak:VersionWord(gspeak.cl.tslib).." version "..tostring(gspeak.cl.tslib.req/1000).."!"
 		else
 			header = "TsLib: Failed"
-			text = "Could not find gmcl_tslib_win32.dll! Please\ndownload & install TsLib version "..tostring(gspeak.cl.tslib.req/1000).."!"
+			text = "Could not find gmcl_tslib_win"..branch ..".dll! Please\ndownload & install TsLib version "..tostring(gspeak.cl.tslib.req/1000).."!"
 		end
 	elseif gspeak.cl.running then
 		color = gspeak.cl.color.green
@@ -234,7 +234,10 @@ function gspeak:DrawStatus()
 		color = gspeak.cl.color.yellow
 		loadingY = posY
 		header = "Scanning for Teamspeak3"
-		text = "Join our Teamspeak3 Server: " .. gspeak.settings.ts_ip .. "\nand enter the Gspeak Channel!"
+		text = "Join our Teamspeak3 Server: " .. gspeak.settings.ts_ip
+		if (!gspeak.settings.def_initialForceMove || gspeak.cl.initialAutoMoveDone) then
+			text = text .."\nand enter the Gspeak Channel with " .. gspeak.settings.joinCmd
+		end
 	elseif gspeak.cl.TS.inChannel then
 		color = gspeak.cl.color.green
 	end

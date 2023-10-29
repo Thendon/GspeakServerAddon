@@ -34,22 +34,20 @@ end
 
 function gspeak:GrabEarAnimation( ply )
 	ply.ChatGestureWeight = ply.ChatGestureWeight or 0
-	local update = false
+	
+	local targetWeight = 0
 	if ply.ChatGesture then
 		if ply.ChatStation then
-			ply.ChatGestureWeight = math.Approach( ply.ChatGestureWeight, 0.5, FrameTime() * 10.0 );
+			targetWeight = 0.5
 		else
-			ply.ChatGestureWeight = math.Approach( ply.ChatGestureWeight, 1, FrameTime() * 10.0 );
+			targetWeight = 1
 		end
-		update = true
-	elseif ply.ChatGestureWeight > 0 then
-		ply.ChatGestureWeight = math.Approach( ply.ChatGestureWeight, 0, FrameTime()  * 10.0 );
-		update = true
 	end
-
-	if update then
+	
+	if ply.ChatGestureWeight != targetWeight then
+		ply.ChatGestureWeight = math.Approach( ply.ChatGestureWeight, targetWeight, FrameTime()  * 10.0 );
 		ply:AnimRestartGesture( GESTURE_SLOT_CUSTOM, ACT_GMOD_IN_CHAT )
 		ply:AnimSetGestureWeight( GESTURE_SLOT_CUSTOM, ply.ChatGestureWeight )
-		ply.ChatGesture = false
 	end
+	ply.ChatGesture = false
 end

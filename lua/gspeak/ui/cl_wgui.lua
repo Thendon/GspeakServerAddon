@@ -77,9 +77,8 @@ function gspeak:DrawOverHead(ply, ang)
         if (!gspeak.settings.deadHearsDead) then return end
         if (gspeak.cl.deadMuted) then return end
         if (gspeak:IsPlayerAlive(LocalPlayer())) then return end
-
-        local slot = ply.dead_slot or 1
-        ply_pos = gspeak:GetAudioListenerPosition() + dead_circle[slot]
+        if (ply.currentDeadCirclePos == nil) then return end
+        ply_pos = gspeak:GetAudioListenerPosition() + ply.currentDeadCirclePos
         isDeadchat = true
     end
 

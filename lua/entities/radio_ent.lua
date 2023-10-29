@@ -9,7 +9,6 @@ ENT.Author = "Thendon.exe"
 ENT.Category = "Gspeak"
 ENT.AutomaticFrameAdvance = true
 ENT.RenderGroup = RENDERGROUP_OPAQUE
---ENT.Radio = true
 
 function ENT:Initialize()
 	self:DefaultInitialize()
@@ -155,18 +154,18 @@ function ENT:Think()
 	end
 
 	if CLIENT then
-		if #self.connected_radios > 0 then
-			if IsValid(self.Owner) and self.Owner == LocalPlayer() then
-				self:AddHearables(LocalPlayer():GetForward(), 1)
-			elseif gspeak.settings.radio.hearable then
-				local distance, radio_pos = gspeak:get_distances(self)
-				local distance_max = self.range
+		-- if #self.connected_radios > 0 then
+		-- 	if IsValid(self.Owner) and self.Owner == LocalPlayer() then
+		-- 		self:AddHearables(LocalPlayer():GetForward(), 1)
+		-- 	elseif gspeak.settings.radio.hearable then
+		-- 		local distance, radio_pos = gspeak:get_distances(self)
+		-- 		local distance_max = self.range
 
-				if distance < distance_max and ( gspeak:IsPlayerAlive(LocalPlayer()) or gspeak.settings.deadHearsAlive ) then
-					self:AddHearables(radio_pos, gspeak:calcVolume( distance, distance_max ))
-				end
-			end
-		end
+		-- 		if distance < distance_max and ( gspeak:IsPlayerAlive(LocalPlayer()) or gspeak.settings.deadHearsAlive ) then
+		-- 			self:AddHearables(radio_pos, gspeak:calcVolume( distance, distance_max ))
+		-- 		end
+		-- 	end
+		-- end
 
 		local own_freq = self:GetFreq()
 		if !self.last_freq or self.last_freq != own_freq or self.last_online != own_online or self.last_sending != own_sending then

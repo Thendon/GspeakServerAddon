@@ -3,7 +3,6 @@
 local handler = {}
 
 local updateCooldown = 0
-local initialAutoMoveDone = false
 
 function handler:LoadTslib()
     if pcall( require, "tslib" ) then
@@ -93,9 +92,9 @@ function handler:CheckConnection()
 			tslib.update()
 		end
 
-		if gspeak.settings.def_initialForceMove and !initialAutoMoveDone then
+		if gspeak.settings.def_initialForceMove and !gspeak.cl.initialAutoMoveDone then
 			gspeak.ConsoleLog("try move client into channel")
-			initialAutoMoveDone = true
+			gspeak.cl.initialAutoMoveDone = true
 			forceMoveLoop()
 		end
 
@@ -113,7 +112,7 @@ function handler:CheckConnection()
 		 --lost connection to Teamspeak3
 		if gspeak.cl.TS.version == 0 then
 			gspeak.cl.TS.connected = false
-			initialAutoMoveDone = false
+			gspeak.cl.initialAutoMoveDone = false
 			gspeak:set_tsid( 0 )
 		end
 	elseif tslib.connectTS() == true then
@@ -131,6 +130,18 @@ function handler:CheckConnection()
 		gspeak.cl.TS.failed = false
 		gspeak.cl.TS.connected = true
 	end
+end
+
+function handler:Kick()
+	if !gspeak.cl.TS.connected then return end
+	if !gspeak.cl.TS.inChannel then return end
+	tslib.forceKick( function(success) end )
+end
+
+function handler:Join()
+	if !gspeak.cl.TS.connected then return end
+	if gspeak.cl.TS.inChannel then return end
+	tslib.forceMove( function(success) end, gspeak.settings.password, gspeak.settings.channelName )
 end
 
 function handler:Disconnect()

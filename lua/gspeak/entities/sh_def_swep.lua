@@ -1,5 +1,3 @@
-
-
 SWEP.Category = "Gspeak"
 SWEP.Author = "Thendon.exe & Kuro"
 SWEP.Instructions = "Left Click - Turn ON/OFF\nRight Click - Open frequency UI\nCAPSLOCK - Default Talk Key\n!gspeak for config"
@@ -14,17 +12,17 @@ SWEP.DrawCrosshair = false
 SWEP.Primary.Ammo = "none"
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
-SWEP.Primary.Automatic = true
+SWEP.Primary.Automatic = false
 SWEP.Secondary.Ammo	= "none"
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
-SWEP.Secondary.Automatic = true
+SWEP.Secondary.Automatic = false
 
 SWEP.UseHands = false
 SWEP.HoldType = "slam"
 
 function SWEP:DefaultInitialize()
-	self.last_think = 0
+	--self.last_think = 0
 	self.deployed = false
 
 	self:SetWeaponHoldType( self.HoldType )
@@ -124,36 +122,38 @@ function SWEP:PostDrawViewModel(vm, weapon, ply)
 end
 
 function SWEP:PrimaryAttack()
-	local now = CurTime()
-	if self:checkThink(now) then return end
-	if self.online then
-		self.online = false
-		if SERVER and !self.silent then self.ent:EmitSound("radio_turnoff_s") end
-	else
-		self.online = true
-		if SERVER and !self.silent then self.ent:EmitSound("radio_booting_s") end
-	end
-	if SERVER then self.ent:SetOnline(self.online) end
+	if (!IsFirstTimePredicted()) then return end
 
-	self:SetNextPrimaryFire( now + 0.1 )
+	self.online = !self.online
+	if SERVER then
+		if !self.silent then 
+			if (self.online) then 
+				self.ent:EmitSound("radio_booting_s")
+			else 
+				self.ent:EmitSound("radio_turnoff_s") 
+			end
+		end
+		self.ent:SetOnline(self.online)
+	end
+
+	self:SetNextPrimaryFire( CurTime() + 0.2 )
 end
 
 function SWEP:SecondaryAttack()
-	local now = CurTime()
-	if self:checkThink(now) then return end
+	if (!IsFirstTimePredicted()) then return end
 	if self.locked_freq == true then return end
 	if CLIENT then self:open_settings() end
 
-	self:SetNextSecondaryFire( now + 0.1 )
+	self:SetNextSecondaryFire( CurTime() + 0.2 )
 end
 
-function SWEP:checkThink( now )
-	if self.last_think < now - 0.2 then
-		self.last_think = now
-		return false
-	end
-	return true
-end
+-- function SWEP:checkThink( now )
+-- 	if self.last_think < now - 0.2 then
+-- 		self.last_think = now
+-- 		return false
+-- 	end
+-- 	return true
+-- end
 
 function SWEP:ShouldDropOnDie()
 	return true
@@ -188,17 +188,25 @@ local function frequencySlider( panel )
 end
 
 function SWEP:open_settings()
-	local DermaPanel = vgui.Create( "DFrame" )
-	DermaPanel:Center()
-	DermaPanel:SetSize( 500, 100 )
-	DermaPanel:SetTitle( "Radio Config" )
-	DermaPanel:SetDraggable( true )
-	DermaPanel:MakePopup()
-	DermaPanel.Paint = function( self, w, h )
-		draw.RoundedBox( 0, 0, 0, w, h, Color( 75, 75, 75, 255 ) )
+	if (settingsPanel != nil) then
+		settingsPanel:Close()
+		return
 	end
 
-	local DSlider = vgui.Create( "DNumSlider", DermaPanel )
+	settingsPanel = vgui.Create( "DFrame" )
+	settingsPanel:Center()
+	settingsPanel:SetSize( 500, 100 )
+	settingsPanel:SetTitle( "Radio Config" )
+	settingsPanel:SetDraggable( true )
+	settingsPanel:MakePopup()
+	settingsPanel.Paint = function( self, w, h )
+		draw.RoundedBox( 0, 0, 0, w, h, Color( 75, 75, 75, 255 ) )
+	end
+	settingsPanel.OnClose = function()
+		settingsPanel = nil
+	end
+
+	local DSlider = vgui.Create( "DNumSlider", settingsPanel )
 	DSlider:SetPos( 10, 50 )
 	DSlider:SetSize( 500, 25 )
 	DSlider:SetText( "Frequency" )
@@ -208,5 +216,5 @@ function SWEP:open_settings()
 	DSlider:SetValue( self.freq/10 )
 	DSlider.Think = frequencySlider
 
-	DermaPanel:SetPos( ScrW()/2 - 250, ScrH()/2 - 50/2)
+	settingsPanel:SetPos( ScrW()/2 - 250, ScrH()/2 - 50/2)
 end

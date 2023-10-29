@@ -53,8 +53,9 @@ local function getDeadCirclePosition(index)
 end
 
 local function getCurrentDeadCirclePosition()
-	getDeadCirclePosition(deadCircleIndex)
+	local pos = getDeadCirclePosition(deadCircleIndex)
 	deadCircleIndex = deadCircleIndex + 1
+	return pos
 end
 
 local function resetDeadCircleIndex()
@@ -114,6 +115,10 @@ local function registerGspeakEntity(ent)
 	gspeak:NoDoubleEntry(ent, gspeak.gspeakEntities)
 end
 
+function gspeak:RegisterGspeakEntity(ent)
+	registerGspeakEntity(ent)
+end
+
 local function unregisterGspeakEntity(ent)
 	local toBeRemoved = {}
 
@@ -135,10 +140,11 @@ end
 local deadIndex = 1
 
 local function handleEntity(ent)
+	print(tostring(ent))
 	if (!gspeak:IsGspeakEntity(ent)) then
 		gspeak.ConsoleWarning(tostring(ent) .. " is no gspeak entity")
 		unregisterGspeakEntity(ent)
-		return
+		return false
 	end
 
 	local entIndex = ent:EntIndex()
@@ -152,7 +158,8 @@ local function handleEntity(ent)
 	if (ent:IsPlayer() && !gspeak:IsPlayerAlive(ent)) then
 		-- ... when dead
 		if (gspeak.settings.deadHearsDead && !gspeak.cl.deadMuted && !gspeak:IsPlayerAlive(LocalPlayer())) then
-			return true, gspeak.cl.settings.deadVolume, getCurrentDeadCirclePosition(), gspeak.voiceEffects.None
+			ent.currentDeadCirclePos = getCurrentDeadCirclePosition()
+			return true, gspeak.cl.settings.deadVolume, ent.currentDeadCirclePos, gspeak.voiceEffects.None
 		-- ... when alive
 		else
 			return false
@@ -172,6 +179,8 @@ local function handleEntity(ent)
 	local volume = 1.0
 	if (maxDistance > 0.0) then
 		volume = 1.0 - (distance / maxDistance)
+	elseif (maxDistance == -1) then
+		volume = 0.0
 	end
 	local hearable = volume > 0.0
 
@@ -210,10 +219,19 @@ hook.Add("EntityRemoved", "gspeak_entityRemoved", function(ent)
     end)
 end)
 
-hook.Add("OnEntityCreated", "gspeak_entityCreated", function(ent)
-	if !gspeak:IsGspeakEntity(ent) then return end
-	registerGspeakEntity(ent)
-end)
+--[[hook.Add("OnEntityCreated", "gspeak_entityCreated", function(ent)
+	--wait for entity to be initialized
+	--(one tick is not enough time for some reason)
+	--seems a little cursed though
+	--print(tostring(engine.TickCount()))
+	
+	timer.Simple(engine.TickInterval() * 2, function ()
+		--print(tostring(engine.TickCount()))
+		--print("timer is gspeak ent " .. tostring(ent) .. " " .. tostring(ent:IsGspeakEntity()) .. " " .. tostring(ent.Author) .. " " .. tostring(ent.GspeakEntity))
+		if !gspeak:IsGspeakEntity(ent) then return end
+		registerGspeakEntity(ent)
+	end)
+end)]]
 
 local function scanAllEntities()
 	for i, ent in ipairs(ents.GetAll()) do
@@ -272,8 +290,10 @@ hook.Add("Think", "gspeak_volume_control", function()
 		if (!isHearable) then continue end
 
 		local speakers = ent:GetSpeakers()
+
 		for i, ply in ipairs(speakers) do
 			if (ply == LocalPlayer()) then continue end
+			if (ply:IsMuted()) then continue end
 
 			local loudestHearable = loudestHearableOfPlayer[ply]
 
@@ -293,6 +313,9 @@ hook.Add("Think", "gspeak_volume_control", function()
 		handlePlayer(ply)
 
 		local hearable = loudestHearableOfPlayer[ply]
+		if (ply:IsHoldingSpeech() && !ply:IsMuted()) then
+			hearable = { volume = 1, pos = vector_origin, effect = gspeak.voiceEffects.None }
+		end
 		local isHearable = hearable != nil
 
 		if !isHearable then

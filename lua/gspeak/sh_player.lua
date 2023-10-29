@@ -5,6 +5,8 @@ function meta:IsGspeakEntity()
 end
 
 function meta:IsTalking()
+	if (self:IsMuted()) then return false end
+
 	if CLIENT then 
 		if (self == LocalPlayer()) then return self.isTalking end
 		if (self.isHearable) then return self.isTalking end
@@ -18,6 +20,14 @@ end
 
 function meta:GetTsId()
 	return self:GetNW2Int("TsId")
+end
+
+function meta:IsHoldingSpeech()
+	return self:GetNW2Bool("SpeechMode")
+end
+
+function meta:IsMuted()
+	return self:GetNW2Bool("Muted")
 end
 
 function meta:SetTalking(talking)
@@ -57,6 +67,27 @@ function meta:SetTsId(tsId)
 end
 
 if SERVER then
+	function meta:StartSpeech(state)
+		self:SetNW2Bool("SpeechMode", true)
+	end
+	
+	function meta:StopSpeech(state)
+		self:SetNW2Bool("SpeechMode", false )
+	end
+	
+	function meta:Mute()
+		self:SetNW2Bool("Muted", true )
+	end
+	
+	function meta:Unmute()
+		self:SetNW2Bool("Muted", false )
+	end
+	
+	function meta:Kick()
+		net.Start("ts_kick")
+		net.Send(self);
+	end
+
 	net.Receive("ts_id", function( len, ply )
 		ply:SetTsId(net.ReadInt( 32 ))
 	end)
@@ -68,4 +99,14 @@ if SERVER then
 	net.Receive("ts_talkmode", function ( len, ply )
 		ply:SetTalkmode(net.ReadInt(32))
 	end)
+end
+
+if CLIENT then
+	net.Receive("ts_kick", function(len)
+		gspeak.io:Kick()
+	end)
+
+	function meta:Join()
+		gspeak.io:Join()
+	end
 end

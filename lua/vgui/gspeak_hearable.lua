@@ -5,7 +5,7 @@ local function gspeak_players_create_list( DList )
 	if last_load_w > CurTime() - 1 then return end
 	last_load_w = CurTime()
 	DList:Clear()
-
+	
 	for i, ent in ipairs(gspeak.gspeakEntities) do
 		local id = ent:EntIndex()
 		
@@ -14,16 +14,19 @@ local function gspeak_players_create_list( DList )
 		if (!isHearable) then continue end
 
 		local speakers = ent:GetSpeakers()
-		local ply, talking, tsId, tsVolume
-		if (#speakers > 0) then
-			local speaker = speakers[1]
-			talking = tostring(speaker:IsTalking())
-			tsId = speaker:GetTsId()
-			tsVolume = speaker.volume
-			ply = tostring(speaker)
+
+		if (#speakers == 0) then
+			DList:AddLine(id, "no speaker", nil, nil, volume, nil, effect)
+			continue
 		end
 
-		DList:AddLine(id, ply, tsId, talking, volume, tsVolume, effect)
+		for i, speaker in ipairs(speakers) do
+			local talking = tostring(speaker:IsTalking())
+			local tsId = speaker:GetTsId()
+			local tsVolume = speaker.volume
+			local ply = tostring(speaker)
+			DList:AddLine(id, ply, tsId, talking, volume, tsVolume, effect)
+		end
 	end
 	DList:SortByColumn( 1 )
 end

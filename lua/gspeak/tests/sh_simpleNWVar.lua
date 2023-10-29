@@ -131,9 +131,6 @@ if SERVER then
     util.AddNetworkString( "SNW.InitializedEntityNetworking" )
     util.AddNetworkString( "SNW.EntitySNWChanged" )
 
-    --local entMeta = FindMetaTable("Entity")
-    --entMeta.initializedForPlayers = {}
-
     function initializeNetworkingForPlayer(ent, ply)
         if !ent.useSnwVars then return end
 
@@ -141,8 +138,6 @@ if SERVER then
             ent.initializedForPlayers = {}
         end
         
-        --PrintTable(ent.initializedForPlayers)
-
         if (ent.initializedForPlayers[ply]) then
             print("[SNW] ERR: Entity " .. tostring(ent) .. " already initialized for ply " .. tostring(ply))
             return

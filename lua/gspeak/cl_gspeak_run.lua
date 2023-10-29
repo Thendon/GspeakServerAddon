@@ -59,6 +59,7 @@ gspeak.cl = {
 		vehicle = Vector(0,0,30)
 	},
 	deadMuted = false,
+	initialAutoMoveDone = false,
 	color = {
 		red = Color( 231, 76, 60, 255),
 		green = Color( 46, 204, 113, 255 ),

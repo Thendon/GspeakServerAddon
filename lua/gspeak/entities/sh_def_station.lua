@@ -181,11 +181,12 @@ function ENT:Think()
 			if !own_speaker.ChatStation then own_speaker.ChatStation = true end
 			own_speaker.ChatGesture = true
 		end
-		local distance, radio_pos = gspeak:get_distances(self)
-		local distance_max = self:GetRange()
-		if distance < distance_max and ( gspeak:IsPlayerAlive(LocalPlayer()) or gspeak.settings.deadHearsAlive ) then
-			self:AddHearables(radio_pos, gspeak:calcVolume( distance, distance_max ))
-		end
+
+		-- local distance, radio_pos = gspeak:get_distances(self)
+		-- local distance_max = self:GetRange()
+		-- if distance < distance_max and ( gspeak:IsPlayerAlive(LocalPlayer()) or gspeak.settings.deadHearsAlive ) then
+		-- 	self:AddHearables(radio_pos, gspeak:calcVolume( distance, distance_max ))
+		-- end
 	end
 end
 

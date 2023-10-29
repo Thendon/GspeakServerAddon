@@ -14,6 +14,8 @@ function meta:InitializeGspeak()
 	self:SetNW2Int("TsId", 0)
     self:SetNW2Bool("Talking", false)
     self:SetNW2Int("Talkmode", 1)
+	self:SetNW2Bool("Muted", false)
+	self:SetNW2Bool("SpeechMode", false)
 end
 
 function meta:SetHearPlayer(ply, state, proximity)
