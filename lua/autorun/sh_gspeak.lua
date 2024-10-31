@@ -2,7 +2,7 @@
 AddCSLuaFile()
 
 gspeak = gspeak or {}
-gspeak.version = 3000
+gspeak.version = 3100
 
 //************************************************************//
 // Change these Variables ingame by entering 
