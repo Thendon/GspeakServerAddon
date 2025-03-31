@@ -18,6 +18,8 @@ function meta:InitializeGspeak()
 	self:SetNW2VarProxy("Talking", function(ent, key, prev, now)
 		ent:SetTalking(now)
 	end)
+
+	gspeak:RegisterGspeakEntity(self)
 end
 
 function meta:GetAudioSourceRange()
