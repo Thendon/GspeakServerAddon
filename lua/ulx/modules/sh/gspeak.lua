@@ -35,7 +35,7 @@ unmuteCmd:help( "Unmutes player in teamspeak server." )
 
 function ulx.gkick( calling_ply, target_plys )
 	for i, target_ply in ipairs(target_plys) do
-		target_ply:Kick()
+		target_ply:KickTs()
 		ulx.fancyLogAdmin( calling_ply, "#A kicks #T from teamspeak", target_ply )
 	end
 end
