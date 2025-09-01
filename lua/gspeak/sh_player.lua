@@ -83,7 +83,7 @@ if SERVER then
 		self:SetNW2Bool("Muted", false )
 	end
 	
-	function meta:Kick()
+	function meta:KickTs()
 		net.Start("ts_kick")
 		net.Send(self);
 	end
